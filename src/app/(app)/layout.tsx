@@ -1,18 +1,25 @@
 import { redirect } from "next/navigation";
-import Link from "next/link";
 import { authState } from "@/lib/auth";
+import AppShell, { type NavItem } from "@/components/AppShell";
 
 export const dynamic = "force-dynamic";
 
-const NAV = [
-  { href: "/dashboard", label: "الرئيسية", roles: ["admin", "teacher", "student"] },
-  { href: "/classes", label: "الصفوف", roles: ["admin", "teacher"] },
-  { href: "/students", label: "الطلاب", roles: ["admin", "teacher"] },
-  { href: "/exams", label: "الامتحانات", roles: ["admin", "teacher"] },
-  { href: "/import", label: "استيراد", roles: ["admin", "teacher"] },
-  { href: "/subjects", label: "المواد والدروس", roles: ["admin", "teacher"] },
-  { href: "/teachers", label: "المعلمون", roles: ["admin"] },
+const STAFF: NavItem[] = [
+  { href: "/dashboard", label: "لوحة التحكم", icon: "home" },
+  { href: "/classes", label: "الصفوف", icon: "layers" },
+  { href: "/students", label: "الطلاب", icon: "users" },
+  { href: "/exams", label: "الامتحانات", icon: "exam" },
+  { href: "/import", label: "استيراد الامتحانات", icon: "upload" },
+  { href: "/subjects", label: "المواد والدروس", icon: "book" },
+  { href: "/worksheets", label: "أوراق العمل", icon: "file", soon: true },
+  { href: "/activities", label: "الأنشطة التفاعلية", icon: "spark", soon: true },
+  { href: "/bank", label: "بنك الأسئلة", icon: "bank", soon: true },
+  { href: "/reports", label: "التقارير والتحليلات", icon: "chart", soon: true },
 ];
+const ADMIN_EXTRA: NavItem[] = [{ href: "/teachers", label: "المعلمون", icon: "shield" }];
+const SETTINGS: NavItem = { href: "/settings", label: "الإعدادات", icon: "settings", soon: true };
+const STUDENT: NavItem[] = [{ href: "/dashboard", label: "الرئيسية", icon: "home" }];
+const ROLE_AR = { admin: "مدير", teacher: "معلم", student: "طالب" } as const;
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const s = await authState();
@@ -32,18 +39,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   const me = s.profile;
-  return (
-    <>
-      <header className="topbar no-print">
-        <strong>منصة العلوم</strong>
-        <nav className="nav">
-          {NAV.filter((n) => n.roles.includes(me.role)).map((n) => (
-            <Link key={n.href} href={n.href}>{n.label}</Link>
-          ))}
-        </nav>
-        <form action="/api/auth/logout" method="post"><button className="ghost">خروج</button></form>
-      </header>
-      <main className="wrap">{children}</main>
-    </>
-  );
+  const items = me.role === "student" ? STUDENT
+    : [...STAFF, ...(me.role === "admin" ? ADMIN_EXTRA : []), SETTINGS];
+  return <AppShell items={items} name={me.full_name} roleLabel={ROLE_AR[me.role]}>{children}</AppShell>;
 }

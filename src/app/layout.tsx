@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
+import { Cairo } from "next/font/google";
 import "./globals.css";
 import PwaRegister from "@/components/PwaRegister";
+
+const cairo = Cairo({ subsets: ["arabic", "latin"], weight: ["400", "600", "700", "800"], display: "swap", variable: "--font-cairo" });
 
 export const metadata: Metadata = {
   title: { default: "منصة العلوم التعليمية", template: "%s | منصة العلوم" },
@@ -11,7 +14,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#1f5fd1",
+  themeColor: "#142B45",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -19,7 +22,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" className={cairo.variable}>
       <body>
         {children}
         <PwaRegister />
