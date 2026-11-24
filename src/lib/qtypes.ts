@@ -20,17 +20,36 @@ const ALIASES: Record<string, string> = {
 export type Converted = {
   qtype: string; prompt: string; instructions: string | null; data: any;
   marks: number; explanation: string | null; difficulty: string;
-  media_kind: string | null; media_url: string | null;
+  media_kind: string | null; media_url: string | null; lesson: string | null;
 };
 
 const str = (v: unknown) => (v === null || v === undefined ? "" : String(v)).trim();
 const strList = (v: unknown): string[] => (Array.isArray(v) ? v.map(str).filter(Boolean) : []);
 const optText = (o: any) => (o && typeof o === "object" ? str(o.text ?? o.label) : str(o));
 
+/** يحوّل صيغة 2.0 (answer_key / points / media) إلى الصيغة المبسّطة، دون تغيير الصيغة القديمة. */
+function normalizeQ(q: any): any {
+  if (!q || typeof q !== "object") return q;
+  const o: any = { ...q };
+  const ak = q.answer_key;
+  if (ak && typeof ak === "object") {
+    if (o.correct === undefined) {
+      if (ak.correct_index !== undefined) o.correct = ak.correct_index;
+      else if (ak.correct_indices !== undefined) o.correct = ak.correct_indices;
+      else if (ak.correct !== undefined) o.correct = ak.correct;
+    }
+    if (o.explanation === undefined && ak.explanation) o.explanation = ak.explanation;
+  }
+  if (o.marks === undefined && q.points !== undefined) o.marks = q.points;
+  if (o.difficulty === undefined && q.meta?.difficulty) o.difficulty = q.meta.difficulty;
+  return o;
+}
+
 /** يعيد {ok} أو {error} برسالة عربية مع رقم السؤال. */
-export function convertQuestion(q: any, n: number): { ok: Converted } | { error: string } {
+export function convertQuestion(q0: any, n: number): { ok: Converted } | { error: string } {
   const fail = (m: string) => ({ error: `السؤال ${n}: ${m}` });
-  if (!q || typeof q !== "object") return fail("بنية غير صحيحة");
+  if (!q0 || typeof q0 !== "object") return fail("بنية غير صحيحة");
+  const q = normalizeQ(q0);
   const qtype = ALIASES[str(q.type ?? q.qtype).toLowerCase()];
   if (!qtype) return fail(`نوع غير معروف «${str(q.type ?? q.qtype)}»`);
   const prompt = str(q.prompt ?? q.question ?? q.text);
@@ -89,13 +108,16 @@ export function convertQuestion(q: any, n: number): { ok: Converted } | { error:
 
   const marks = q.marks === undefined ? 1 : Number(q.marks);
   if (!Number.isFinite(marks) || marks <= 0 || marks > 100) return fail("الدرجة غير صحيحة");
-  const img = str(q.image ?? q.media_url);
-  if (img && !/^https?:\/\//i.test(img)) return fail("رابط الصورة يجب أن يبدأ بـ http أو https");
+  const m = q.media && typeof q.media === "object" ? q.media : null;
+  // صورة مرفوعة (storage:) أو اسم ملف سيُربط عند الاستيراد (media:) أو رابط http
+  const img = str(q.image ?? q.media_url ?? m?.url ?? (m?.file ? `media:${m.file}` : ""));
+  if (img && !/^(https?:\/\/|storage:|media:)/i.test(img)) return fail("رابط الصورة يجب أن يبدأ بـ http أو https");
+  if (m?.alt) data = { ...data, media_alt: str(m.alt) };
   const diff = ["easy", "medium", "hard"].includes(str(q.difficulty)) ? str(q.difficulty) : "medium";
   return { ok: {
     qtype, prompt, instructions: str(q.instructions) || null, data, marks,
     explanation: str(q.explanation) || null, difficulty: diff,
-    media_kind: img ? "image" : null, media_url: img || null,
+    media_kind: img ? "image" : null, media_url: img || null, lesson: str(q.lesson) || null,
   } };
 }
 
@@ -108,9 +130,24 @@ export type ExamIn = {
 
 const KINDS = ["exam", "quiz", "homework", "worksheet", "activity", "revision", "final"];
 
-export function convertExam(x: any): { ok: ExamIn } | { errors: string[] } {
+/** صيغة 2.0: {exam:{title,grade,subject,settings,…}, questions:[…]} → الصيغة المسطّحة. */
+export function normalizeExam(x0: any): any {
+  if (!x0 || typeof x0 !== "object" || !x0.exam || typeof x0.exam !== "object") return x0;
+  const e = x0.exam, st = e.settings && typeof e.settings === "object" ? e.settings : {};
+  return {
+    title: e.title, kind: e.kind, subject: e.subject, grade_level: e.grade_level ?? e.grade,
+    lesson: e.lesson, description: e.description, duration_minutes: e.duration_minutes,
+    max_attempts: st.max_attempts ?? e.max_attempts,
+    shuffle_questions: st.shuffle_questions, shuffle_options: st.shuffle_options,
+    show_answers: st.show_review_after_finish ?? st.show_answers,
+    questions: x0.questions,
+  };
+}
+
+export function convertExam(x0: any): { ok: ExamIn } | { errors: string[] } {
   const errors: string[] = [];
-  if (!x || typeof x !== "object") return { errors: ["بنية الملف غير صحيحة"] };
+  if (!x0 || typeof x0 !== "object") return { errors: ["بنية الملف غير صحيحة"] };
+  const x = normalizeExam(x0);
   const title = str(x.title);
   if (!title) errors.push("عنوان الامتحان مفقود");
   const list = Array.isArray(x.questions) ? x.questions : [];

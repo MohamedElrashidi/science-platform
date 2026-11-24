@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { requireRole } from "@/lib/guard";
-import { convertExam } from "@/lib/qtypes";
+import { convertExam, normalizeExam } from "@/lib/qtypes";
 
 type Result = { title: string; ok: boolean; skipped?: boolean; questions?: number; errors?: string[]; exam_id?: number };
 
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
 
   for (const raw of list) {
     const conv = convertExam(raw);
-    const title = String(raw?.title ?? "بدون عنوان");
+    const title = String(normalizeExam(raw)?.title ?? "بدون عنوان");
     if (!("ok" in conv)) { results.push({ title, ok: false, errors: conv.errors }); continue; }
     const ex = conv.ok;
 
@@ -55,9 +55,21 @@ export async function POST(req: Request) {
     }).select("id").single();
     if (eErr || !exam) { results.push({ title: ex.title, ok: false, errors: ["تعذر إنشاء الامتحان"] }); continue; }
 
+    // دروس الأسئلة (لكل سؤال درسه إن ذكره)
+    const lessonIds = new Map<string, number | null>();
+    for (const q of ex.questions) {
+      if (!q.lesson || !subject_id || lessonIds.has(q.lesson)) continue;
+      const { data: l } = await supabase.from("lessons").select("id").eq("subject_id", subject_id).eq("title", q.lesson).maybeSingle();
+      if (l) lessonIds.set(q.lesson, l.id);
+      else {
+        const { data: nl } = await supabase.from("lessons").insert({ subject_id, title: q.lesson, grade_level: ex.grade_level }).select("id").single();
+        lessonIds.set(q.lesson, nl?.id ?? null);
+      }
+    }
+
     const { data: qs, error: qErr } = await supabase.from("questions").insert(
       ex.questions.map((q) => ({
-        owner_id: me, subject_id, lesson_id, grade_level: ex.grade_level, qtype: q.qtype, prompt: q.prompt,
+        owner_id: me, subject_id, lesson_id: (q.lesson && lessonIds.get(q.lesson)) || lesson_id, grade_level: ex.grade_level, qtype: q.qtype, prompt: q.prompt,
         instructions: q.instructions, media_kind: q.media_kind, media_url: q.media_url, data: q.data,
         explanation: q.explanation, marks: q.marks, difficulty: q.difficulty, status: "pending_review",
       }))
