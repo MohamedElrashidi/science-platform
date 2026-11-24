@@ -6,7 +6,7 @@ import { tr, type LangCode } from "@/lib/i18n";
 
 function LoginForm() {
   const params = useSearchParams();
-  const [mode, setMode] = useState<"student" | "teacher">("student");
+  const [mode, setMode] = useState<"student" | "parent" | "teacher">("student");
   const [a, setA] = useState("");
   const [b, setB] = useState("");
   const [err, setErr] = useState("");
@@ -19,8 +19,8 @@ function LoginForm() {
     e.preventDefault();
     setErr(""); setBusy(true);
     try {
-      const url = mode === "student" ? "/api/auth/student-login" : "/api/auth/login";
-      const body = mode === "student" ? { username: a, code: b } : { email: a, password: b };
+      const url = mode !== "teacher" ? "/api/auth/student-login" : "/api/auth/login";
+      const body = mode !== "teacher" ? { username: a, code: b } : { email: a, password: b };
       const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       if (!r.ok) { setErr((await r.json().catch(() => ({}))).error || "تعذر الدخول"); setBusy(false); return; }
       const next = params.get("next");
@@ -45,17 +45,18 @@ function LoginForm() {
           <h1>{t("تسجيل الدخول")}</h1>
           <p className="muted" style={{ marginTop: 0 }}>{t("منصة العلوم التعليمية")}</p>
           <div className="tabs" role="tablist">
-            <button type="button" className={mode === "student" ? "on" : ""} onClick={() => { setMode("student"); setA(""); setB(""); setErr(""); }}>{t("طالب / ولي أمر")}</button>
+            <button type="button" className={mode === "student" ? "on" : ""} onClick={() => { setMode("student"); setA(""); setB(""); setErr(""); }}>{t("طالب")}</button>
+            <button type="button" className={mode === "parent" ? "on" : ""} onClick={() => { setMode("parent"); setA(""); setB(""); setErr(""); }}>{t("ولي أمر")}</button>
             <button type="button" className={mode === "teacher" ? "on" : ""} onClick={() => { setMode("teacher"); setA(""); setB(""); setErr(""); }}>{t("معلم / مدير")}</button>
           </div>
-          <label htmlFor="a">{mode === "student" ? t("اسم المستخدم") : t("البريد الإلكتروني")}</label>
+          <label htmlFor="a">{mode !== "teacher" ? t("اسم المستخدم") : t("البريد الإلكتروني")}</label>
           <input id="a" value={a} onChange={(e) => setA(e.target.value)} dir="ltr" required
                  autoCapitalize="none" autoCorrect="off" autoComplete="username"
                  inputMode={mode === "teacher" ? "email" : "text"} />
-          <label htmlFor="b">{mode === "student" ? t("كود الدخول") : t("كلمة المرور")}</label>
-          <input id="b" type={mode === "student" ? "text" : "password"} value={b}
+          <label htmlFor="b">{mode !== "teacher" ? t("كود الدخول") : t("كلمة المرور")}</label>
+          <input id="b" type={mode !== "teacher" ? "text" : "password"} value={b}
                  onChange={(e) => setB(e.target.value)} dir="ltr" required
-                 autoCapitalize={mode === "student" ? "characters" : "none"} autoComplete="current-password" />
+                 autoCapitalize={mode !== "teacher" ? "characters" : "none"} autoComplete="current-password" />
           <p className="err" role="alert">{err}</p>
           <button disabled={busy} style={{ width: "100%" }}>{busy ? t("جارٍ الدخول…") : t("دخول")}</button>
         </form>
