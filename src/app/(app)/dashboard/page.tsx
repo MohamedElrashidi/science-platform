@@ -146,10 +146,12 @@ async function TeacherHome({ name }: { name: string }) {
 
 async function StudentHome({ name, id }: { name: string; id: string }) {
   const sb = await createClient();   // الطالب يرى امتحاناته المنشورة المسندة ومحاولاته فقط (RLS)
-  const [ex, at] = await Promise.all([
+  const [ex, at, rs] = await Promise.all([
     sb.from("exams").select("id, title, duration_minutes, max_attempts, show_score, kind").eq("status", "published"),
     sb.from("attempts").select("id, exam_id, status, percent, submitted_at").eq("student_id", id).order("started_at", { ascending: false }),
+    sb.from("resources").select("id, title, kind, source").eq("status", "published").order("id", { ascending: false }),
   ]);
+  const res: any[] = rs.data || [];
   const exams: any[] = ex.data || [], attempts: any[] = at.data || [];
   const showScore = new Map(exams.map((e) => [e.id, e.show_score]));
   const done = attempts.filter((a) => a.status !== "in_progress");
@@ -193,6 +195,18 @@ async function StudentHome({ name, id }: { name: string; id: string }) {
             <div key={i} className={"bdg" + (b.on ? "" : " locked")}><div className="bi"><Icon name={b.icon} /></div>{b.t}</div>
           ))}</div></div>
       </section>
+
+      {res.length > 0 && (
+        <section className="card" style={{ marginTop: 16 }}>
+          <div className="sec"><h2>أوراق العمل والأنشطة</h2></div>
+          <div className="feed">{res.map((r) => (
+            <Link key={r.id} href={`/open/${r.id}`} className="it" style={{ textDecoration: "none", color: "inherit" }}>
+              <div className="dot l"><Icon name={r.kind === "activity" ? "spark" : "file"} size={18} /></div>
+              <div className="tx">{r.title}<small>{r.kind === "activity" ? "نشاط تفاعلي" : "ورقة عمل"}</small></div>
+              <span className="badge g">فتح</span></Link>
+          ))}</div>
+        </section>
+      )}
 
       <section className="card" style={{ marginTop: 16 }}>
         <div className="sec"><h2>نتائجي الأخيرة</h2></div>

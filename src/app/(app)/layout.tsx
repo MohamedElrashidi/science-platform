@@ -11,8 +11,8 @@ const STAFF: NavItem[] = [
   { href: "/exams", label: "الامتحانات", icon: "exam" },
   { href: "/import", label: "استيراد الامتحانات", icon: "upload" },
   { href: "/subjects", label: "المواد والدروس", icon: "book" },
-  { href: "/worksheets", label: "أوراق العمل", icon: "file", soon: true },
-  { href: "/activities", label: "الأنشطة التفاعلية", icon: "spark", soon: true },
+  { href: "/worksheets", label: "أوراق العمل", icon: "file" },
+  { href: "/activities", label: "الأنشطة التفاعلية", icon: "spark" },
   { href: "/bank", label: "بنك الأسئلة", icon: "bank" },
   { href: "/reports", label: "التقارير والتحليلات", icon: "chart" },
 ];
