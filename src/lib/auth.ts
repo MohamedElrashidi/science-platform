@@ -17,11 +17,12 @@ export async function currentProfile(): Promise<Profile | null> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("profiles")
     .select("id, role, full_name, username, class_id, active")
     .eq("id", user.id)
-    .single();
+    .maybeSingle();
+  if (error) console.error("profile fetch failed:", error.message);
   if (!data || !data.active) return null;
   return data as Profile;
 }
