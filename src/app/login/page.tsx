@@ -45,7 +45,7 @@ function LoginForm() {
           <h1>{t("تسجيل الدخول")}</h1>
           <p className="muted" style={{ marginTop: 0 }}>{t("منصة العلوم التعليمية")}</p>
           <div className="tabs" role="tablist">
-            <button type="button" className={mode === "student" ? "on" : ""} onClick={() => { setMode("student"); setA(""); setB(""); setErr(""); }}>{t("طالب")}</button>
+            <button type="button" className={mode === "student" ? "on" : ""} onClick={() => { setMode("student"); setA(""); setB(""); setErr(""); }}>{t("طالب / ولي أمر")}</button>
             <button type="button" className={mode === "teacher" ? "on" : ""} onClick={() => { setMode("teacher"); setA(""); setB(""); setErr(""); }}>{t("معلم / مدير")}</button>
           </div>
           <label htmlFor="a">{mode === "student" ? t("اسم المستخدم") : t("البريد الإلكتروني")}</label>

@@ -5,6 +5,7 @@ import Icon from "@/components/Icon";
 import AtomArt from "@/components/AtomArt";
 import { getPrefs } from "@/lib/prefs";
 import { tr } from "@/lib/i18n";
+import ParentHome from "./ParentHome";
 import { WeeklyBars, ExamBars, Empty } from "@/components/Charts";
 
 const DAY = 86400000;
@@ -23,10 +24,11 @@ function Stat({ icon, label, value, trend, t, a }: { icon: string; label: string
   );
 }
 
-export default async function Dashboard() {
+export default async function Dashboard({ searchParams }: { searchParams: Promise<{ child?: string }> }) {
   const me = await currentProfile();
   if (!me) return null;   // الـ layout يعالج الحالتين (غير مسجل / بلا ملف)
   const { lang } = await getPrefs();
+  if (me.role === "parent") return <ParentHome me={me} child={(await searchParams).child} />;
   return me.role === "student" ? <StudentHome name={me.full_name} id={me.id} lang={lang} /> : <TeacherHome name={me.full_name} lang={lang} />;
 }
 

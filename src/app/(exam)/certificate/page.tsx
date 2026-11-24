@@ -1,4 +1,4 @@
-import { currentProfile } from "@/lib/auth";
+import { currentProfile, isStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { rankStudents, type Ranked } from "@/lib/awards";
 import PrintBar from "./PrintBar";
@@ -7,7 +7,7 @@ const ORD = ["الأول", "الثاني", "الثالث", "الرابع", "ال
 
 export default async function Certificates({ searchParams }: { searchParams: Promise<{ student?: string; class?: string; n?: string; min?: string; rank?: string }> }) {
   const me = await currentProfile();
-  if (!me || me.role === "student") return <div className="center"><div className="card"><p className="err">هذه الصفحة للمعلمين فقط.</p></div></div>;
+  if (!me || !isStaff(me.role)) return <div className="center"><div className="card"><p className="err">هذه الصفحة للمعلمين فقط.</p></div></div>;
   const sp = await searchParams;
   const cid = Number(sp.class) || null;
   let items: (Ranked & { rank?: number })[] = [];

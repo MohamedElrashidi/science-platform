@@ -2,7 +2,8 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export type Role = "admin" | "teacher" | "student";
+export type Role = "admin" | "teacher" | "student" | "parent";
+export const isStaff = (r: Role) => r === "admin" || r === "teacher";
 export type Profile = { id: string; role: Role; full_name: string; username: string; class_id: number | null };
 
 export const STUDENT_DOMAIN = process.env.STUDENT_EMAIL_DOMAIN || "students.example.com";

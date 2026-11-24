@@ -1,4 +1,4 @@
-import { currentProfile } from "@/lib/auth";
+import { currentProfile, isStaff } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { rankStudents } from "@/lib/awards";
 import { Empty } from "@/components/Charts";
@@ -8,7 +8,7 @@ const REWARD = ["ميدالية ذهبية + شهادة تقدير", "ميدال
 
 export default async function Awards({ searchParams }: { searchParams: Promise<{ class?: string; min?: string; n?: string }> }) {
   const me = await currentProfile();
-  if (!me || me.role === "student") return null;
+  if (!me || !isStaff(me.role)) return null;
   const sp = await searchParams;
   const cid = Number(sp.class) || null;
   const min = Math.min(100, Math.max(1, Number(sp.min) || 90));

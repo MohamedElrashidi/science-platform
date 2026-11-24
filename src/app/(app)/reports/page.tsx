@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { currentProfile } from "@/lib/auth";
+import { currentProfile, isStaff } from "@/lib/auth";
 import { Empty, ExamBars } from "@/components/Charts";
 import PrintButton from "./PrintButton";
 
@@ -9,7 +9,7 @@ const band = (p: number) => (p >= 85 ? ["ممتاز", "g"] : p >= 65 ? ["جيد"
 
 export default async function Reports({ searchParams }: { searchParams: Promise<{ class?: string }> }) {
   const me = await currentProfile();
-  if (!me || me.role === "student") return null;
+  if (!me || !isStaff(me.role)) return null;
   const sp = await searchParams, cid = Number(sp.class) || null;
   const sb = await createClient();
   const [cls, studs, atts, ans] = await Promise.all([

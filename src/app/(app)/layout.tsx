@@ -10,6 +10,7 @@ const STAFF: NavItem[] = [
   { href: "/dashboard", label: "لوحة التحكم", icon: "home" },
   { href: "/classes", label: "الصفوف", icon: "layers" },
   { href: "/students", label: "الطلاب", icon: "users" },
+  { href: "/parents", label: "أولياء الأمور", icon: "users" },
   { href: "/exams", label: "الامتحانات", icon: "exam" },
   { href: "/import", label: "استيراد الامتحانات", icon: "upload" },
   { href: "/subjects", label: "المواد والدروس", icon: "book" },
@@ -23,7 +24,7 @@ const STAFF: NavItem[] = [
 const ADMIN_EXTRA: NavItem[] = [{ href: "/teachers", label: "المعلمون", icon: "shield" }];
 const SETTINGS: NavItem = { href: "/settings", label: "الإعدادات", icon: "settings" };
 const STUDENT: NavItem[] = [{ href: "/dashboard", label: "الرئيسية", icon: "home" }, SETTINGS];
-const ROLE_AR = { admin: "مدير", teacher: "معلم", student: "طالب" } as const;
+const ROLE_AR = { admin: "مدير", teacher: "معلم", student: "طالب", parent: "ولي أمر" } as const;
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const s = await authState();
@@ -43,7 +44,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   const me = s.profile;
-  const items = me.role === "student" ? STUDENT
+  const items = me.role === "student" || me.role === "parent" ? STUDENT
     : [...STAFF, ...(me.role === "admin" ? ADMIN_EXTRA : []), SETTINGS];
   const { lang } = await getPrefs();
   const shown = items.map((n) => ({ ...n, label: tr(lang, n.label) }));

@@ -31,7 +31,7 @@ export async function POST(req: Request) {
   let ok = !error && !!data.user;
   if (ok) {
     const { data: prof } = await admin.from("profiles").select("role, active").eq("id", data.user!.id).single();
-    if (!prof || prof.role !== "student" || !prof.active) {
+    if (!prof || (prof.role !== "student" && prof.role !== "parent") || !prof.active) {
       await supabase.auth.signOut();
       ok = false;
     }
