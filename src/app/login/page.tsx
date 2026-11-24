@@ -1,10 +1,8 @@
 "use client";
 import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { useSearchParams } from "next/navigation";
 
 function LoginForm() {
-  const router = useRouter();
   const params = useSearchParams();
   const [mode, setMode] = useState<"student" | "teacher">("student");
   const [a, setA] = useState("");
@@ -16,20 +14,17 @@ function LoginForm() {
     e.preventDefault();
     setErr(""); setBusy(true);
     try {
-      if (mode === "student") {
-        const r = await fetch("/api/auth/student-login", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username: a, code: b }),
-        });
-        if (!r.ok) { setErr((await r.json().catch(() => ({}))).error || "تعذر الدخول"); return; }
-      } else {
-        const { error } = await createClient().auth.signInWithPassword({ email: a.trim(), password: b });
-        if (error) { setErr("البريد أو كلمة المرور غير صحيحة"); return; }
-      }
+      const url = mode === "student" ? "/api/auth/student-login" : "/api/auth/login";
+      const body = mode === "student" ? { username: a, code: b } : { email: a, password: b };
+      const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      if (!r.ok) { setErr((await r.json().catch(() => ({}))).error || "تعذر الدخول"); setBusy(false); return; }
       const next = params.get("next");
-      router.replace(next && next.startsWith("/") ? next : "/dashboard");
-      router.refresh();
-    } finally { setBusy(false); }
+      // تحويل كامل للصفحة بعد ضبط الجلسة (أوثق من التنقل الداخلي)
+      window.location.assign(next && next.startsWith("/") ? next : "/dashboard");
+    } catch {
+      setErr("تعذر الاتصال بالخادم. تحقق من الإنترنت وأعد المحاولة.");
+      setBusy(false);
+    }
   }
 
   return (
