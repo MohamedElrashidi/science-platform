@@ -3,13 +3,14 @@ import { useEffect, useState } from "react";
 import { api } from "@/lib/client";
 
 type S = { id: string; full_name: string };
-type P = { id: string; full_name: string; username: string; children: S[] };
+type P = { id: string; full_name: string; username: string; phone?: string | null; children: S[] };
 type Cred = { name: string; username: string; code: string };
 
 export default function ParentsPage() {
   const [list, setList] = useState<P[]>([]);
   const [studs, setStuds] = useState<S[]>([]);
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [sel, setSel] = useState<string[]>([]);
   const [q, setQ] = useState("");
   const [msg, setMsg] = useState("");
@@ -24,9 +25,9 @@ export default function ParentsPage() {
   async function add(e: React.FormEvent) {
     e.preventDefault(); setMsg("");
     try {
-      const r = await api<{ username: string; access_code: string }>("/api/parents", "POST", { full_name: name, student_ids: sel });
+      const r = await api<{ username: string; access_code: string }>("/api/parents", "POST", { full_name: name, phone, student_ids: sel });
       setCred({ name, username: r.username, code: r.access_code });
-      setName(""); setSel([]); load();
+      setName(""); setPhone(""); setSel([]); load();
     } catch (x: any) { setMsg(x.message); }
   }
   async function patch(id: string, body: object, nm: string) {
@@ -45,7 +46,8 @@ export default function ParentsPage() {
         <h1>أولياء الأمور</h1>
         <p className="muted">ولي الأمر يرى نتائج أبنائه ومستواهم وترتيبهم ونقاط القوة والضعف فقط، ولا يستطيع تعديل أي شيء. يدخل من صفحة الدخول (تبويب «ولي أمر») باسم المستخدم والكود الذي تسلّمه له، ثم يختار الصف والاسم ويكتب كود ابنه لإضافته.</p>
         <form onSubmit={add}>
-          <div className="row"><div><label>اسم ولي الأمر</label><input value={name} onChange={(e) => setName(e.target.value)} required /></div></div>
+          <div className="row"><div><label>اسم ولي الأمر</label><input value={name} onChange={(e) => setName(e.target.value)} required /></div>
+            <div><label>رقم واتساب ولي الأمر</label><input value={phone} onChange={(e) => setPhone(e.target.value)} dir="ltr" placeholder="05xxxxxxxx" /></div></div>
           <label style={{ marginTop: 10 }}>اختر الأبناء — اختياري ({sel.length}). يستطيع ولي الأمر إضافة ابنه بنفسه بعد الدخول بكود ابنه</label>
           <input placeholder="بحث باسم الطالب…" value={q} onChange={(e) => setQ(e.target.value)} />
           <div style={{ maxHeight: 220, overflow: "auto", border: "1px solid var(--line)", borderRadius: 10, padding: 8, marginTop: 6 }}>
@@ -71,10 +73,11 @@ export default function ParentsPage() {
         <h2>الحسابات الحالية</h2>
         {!list.length ? <p className="muted">لا يوجد أولياء أمور بعد.</p> : (
           <div className="tbl"><table>
-            <thead><tr><th>ولي الأمر</th><th>اسم المستخدم</th><th>الأبناء</th><th></th></tr></thead>
+            <thead><tr><th>ولي الأمر</th><th>اسم المستخدم</th><th>الرقم</th><th>الأبناء</th><th></th></tr></thead>
             <tbody>{list.map((p) => (
               <tr key={p.id}>
                 <td>{p.full_name}</td><td dir="ltr">{p.username}</td>
+                <td dir="ltr"><a href="#" onClick={(e) => { e.preventDefault(); const v = prompt("رقم واتساب ولي الأمر", p.phone || ""); if (v !== null) patch(p.id, { phone: v }, p.full_name); }}>{p.phone || "إضافة رقم"}</a></td>
                 <td>{p.children.map((c) => (
                   <span key={c.id} className="badge" style={{ marginInlineEnd: 4 }}>{c.full_name}
                     <a href="#" style={{ marginInlineStart: 6 }} title="فك الارتباط" onClick={(e) => { e.preventDefault(); if (confirm("فك ارتباط هذا الابن؟")) patch(p.id, { remove: [c.id] }, p.full_name); }}>×</a></span>))}

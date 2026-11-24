@@ -26,6 +26,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     if ((ok || []).length !== add.length) return NextResponse.json({ error: "بعض الطلاب غير متاحين لك" }, { status: 403 });
     await d.from("parent_students").upsert(add.map((s) => ({ parent_id: id, student_id: s })));
   }
+  if (typeof b.phone === "string") await d.from("profiles").update({ phone: b.phone.trim() || null }).eq("id", id);
   if (remove.length) await d.from("parent_students").delete().eq("parent_id", id).in("student_id", remove);
   if (b.reset) {
     const code = makeCode();

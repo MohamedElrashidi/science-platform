@@ -17,9 +17,9 @@ export async function GET() {
   const { data: links } = await d.from("parent_students").select("parent_id, student_id").limit(5000);
   const mine = new Set<string>();
   (links || []).forEach((l: any) => { if (g.me.role === "admin" || names.has(l.student_id)) mine.add(l.parent_id); });
-  const { data: ps } = await d.from("profiles").select("id, full_name, username, active, created_by").eq("role", "parent").order("full_name").limit(1000);
+  const { data: ps } = await d.from("profiles").select("id, full_name, username, phone, active, created_by").eq("role", "parent").order("full_name").limit(1000);
   const out = (ps || []).filter((p: any) => g.me.role === "admin" || p.created_by === g.me.id || mine.has(p.id)).map((p: any) => ({
-    id: p.id, full_name: p.full_name, username: p.username, active: p.active,
+    id: p.id, full_name: p.full_name, username: p.username, phone: p.phone, active: p.active,
     children: (links || []).filter((l: any) => l.parent_id === p.id).map((l: any) => ({ id: l.student_id, full_name: names.get(l.student_id) ?? "طالب آخر" })),
   }));
   return NextResponse.json(out);
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     if (r.data?.user) userId = r.data.user.id;
   }
   if (!userId) return NextResponse.json({ error: "تعذر إنشاء الحساب" }, { status: 500 });
-  const { error: pErr } = await admin.from("profiles").insert({ id: userId, role: "parent", full_name, username, created_by: g.me.id });
+  const { error: pErr } = await admin.from("profiles").insert({ id: userId, role: "parent", full_name, username, phone: String(b.phone || "").trim() || null, created_by: g.me.id });
   if (pErr) { await admin.auth.admin.deleteUser(userId); return NextResponse.json({ error: "تعذر حفظ الحساب. هل شغّلت ملف 0006 في Supabase؟" }, { status: 500 }); }
   const { error: lErr } = ids.length ? await admin.from("parent_students").insert(ids.map((s) => ({ parent_id: userId, student_id: s }))) : { error: null };
   if (lErr) { await admin.auth.admin.deleteUser(userId); return NextResponse.json({ error: "تعذر ربط الأبناء" }, { status: 500 }); }
