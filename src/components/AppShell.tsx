@@ -18,15 +18,17 @@ export default function AppShell({ items, name, roleLabel, children }: {
     <div className="shell">
       <header className="mbar no-print">
         <button className="iconbtn" aria-label="القائمة" onClick={() => setOpen(true)}><Icon name="menu" /></button>
-        <strong>RASHIDI-LAB</strong>
+        <Link href="/dashboard" className="home-link" aria-label="الرئيسية"><strong>RASHIDI-LAB</strong></Link>
         <span style={{ width: 44 }} />
       </header>
       {open && <div className="scrim no-print" onClick={() => setOpen(false)} />}
 
       <aside className={"side no-print" + (open ? " open" : "")}>
         <div className="brand">
-          <Logo />
-          <div><div className="brand-t">RASHIDI-LAB</div><div className="brand-s">منصة العلوم التعليمية</div></div>
+          <Link href="/dashboard" className="home-link brand-link" aria-label="الرئيسية">
+            <Logo />
+            <div><div className="brand-t">RASHIDI-LAB</div><div className="brand-s">منصة العلوم التعليمية</div></div>
+          </Link>
           <button className="iconbtn close" aria-label="إغلاق" onClick={() => setOpen(false)}><Icon name="close" /></button>
         </div>
 
