@@ -41,27 +41,27 @@ export async function POST(req: Request) {
   const admin = createAdminClient();
   const code = makeCode();
   let username = given;
-  let created: Awaited<ReturnType<typeof admin.auth.admin.createUser>>["data"] | null = null;
+  let userId = "";
   let lastErr = "";
-  for (let i = 0; i < 6 && !created?.user; i++) {
-    if (!given) username = "s" + randomInt(10000, 100000);   // توليد تلقائي
+  for (let i = 0; i < 6; i++) {
+    if (!given) username = "s" + String(randomInt(10000, 100000));   // توليد تلقائي
     const r = await admin.auth.admin.createUser({ email: studentEmail(username), password: code, email_confirm: true });
-    if (r.data?.user) { created = r.data; break; }
-    lastErr = r.error?.message || "";
+    if (r.data && r.data.user) { userId = r.data.user.id; break; }
+    lastErr = (r.error && r.error.message) || "";
     if (given || !/already|registered|exists/i.test(lastErr)) break;   // اسم محدد: لا إعادة محاولة
   }
-  if (!created?.user) {
+  if (!userId) {
     const dup = /already|registered|exists/i.test(lastErr);
     return NextResponse.json({ error: dup ? "اسم المستخدم مستخدم" : "تعذر إنشاء الحساب" }, { status: dup ? 409 : 500 });
   }
   const { error: pErr } = await admin.from("profiles").insert({
-    id: created.user.id, role: "student", full_name, username, class_id,
+    id: userId, role: "student", full_name, username, class_id,
     phone: b.phone || null, guardian_name: b.guardian_name || null,
     grade_level: b.grade_level || null, created_by: me.id,
   });
   if (pErr) {
-    await admin.auth.admin.deleteUser(created.user.id);
+    await admin.auth.admin.deleteUser(userId);
     return NextResponse.json({ error: "تعذر حفظ بيانات الطالب" }, { status: 500 });
   }
-  return NextResponse.json({ id: created.user.id, username, access_code: code }, { status: 201 });
+  return NextResponse.json({ id: userId, username, access_code: code }, { status: 201 });
 }
