@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { currentProfile } from "@/lib/auth";
+import { authState } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -13,8 +13,23 @@ const NAV = [
 ];
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const me = await currentProfile();
-  if (!me) redirect("/login");
+  const s = await authState();
+  if (s.status === "anonymous") redirect("/login");
+
+  // مسجّل دخول بلا ملف صالح: نعرض السبب ولا نحوّل (تفادي حلقة التحويل)
+  if (s.status === "no-profile") {
+    return (
+      <div className="center">
+        <div className="card" style={{ maxWidth: 520 }}>
+          <h1>تعذر تحميل حسابك</h1>
+          <p className="err" dir="auto">{s.reason}</p>
+          <form action="/api/auth/logout" method="post"><button>تسجيل الخروج</button></form>
+        </div>
+      </div>
+    );
+  }
+
+  const me = s.profile;
   return (
     <>
       <header className="topbar no-print">

@@ -1,11 +1,10 @@
-import { redirect } from "next/navigation";
 import { currentProfile } from "@/lib/auth";
 
 const ROLE_AR = { admin: "مدير", teacher: "معلم", student: "طالب" } as const;
 
 export default async function Dashboard() {
   const me = await currentProfile();
-  if (!me) redirect("/login");
+  if (!me) return null;   // الـ layout يعالج الحالتين (غير مسجل / بلا ملف)
   return (
     <div className="card">
       <h1>أهلاً، {me.full_name}</h1>
