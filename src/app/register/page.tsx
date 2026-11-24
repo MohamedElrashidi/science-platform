@@ -30,9 +30,9 @@ export default function Register() {
         <label>اسم ولي الأمر</label>
         <input value={f.full_name} onChange={(e) => setF({ ...f, full_name: e.target.value })} required />
         <label>اسم مستخدم (إنجليزي)</label>
-        <input value={f.username} onChange={(e) => setF({ ...f, username: e.target.value })} dir="ltr" required autoCapitalize="none" autoCorrect="off" />
+        <input name="username" autoComplete="username" value={f.username} onChange={(e) => setF({ ...f, username: e.target.value })} dir="ltr" required autoCapitalize="none" autoCorrect="off" />
         <label>كلمة مرور (8 أحرف على الأقل)</label>
-        <input type="password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} dir="ltr" required minLength={8} autoComplete="new-password" />
+        <input name="password" type="password" value={f.password} onChange={(e) => setF({ ...f, password: e.target.value })} dir="ltr" required minLength={8} autoComplete="new-password" />
         <label>رقم واتساب للتواصل</label>
         <input type="tel" inputMode="tel" value={f.phone} onChange={(e) => setF({ ...f, phone: e.target.value })} dir="ltr" required placeholder="05xxxxxxxx" />
         <hr style={{ margin: "14px 0", border: 0, borderTop: "1px solid var(--line)" }} />

@@ -3,7 +3,7 @@ const EN: Record<string, string> = {
   "لوحة التحكم": "Dashboard", "الصفوف": "Classes", "الطلاب": "Students", "الامتحانات": "Exams", "استيراد الامتحانات": "Import exams",
   "المواد والدروس": "Subjects & lessons", "أوراق العمل": "Worksheets", "الأنشطة التفاعلية": "Interactive activities", "الفيديوهات": "Videos",
   "بنك الأسئلة": "Question bank", "التقارير والتحليلات": "Reports & analytics", "المعلمون": "Teachers", "الإعدادات": "Settings", "الرئيسية": "Home",
-  "مدير": "Admin", "معلم": "Teacher", "طالب": "Student", "طالب / ولي أمر": "Student / Parent", "ولي أمر": "Parent", "أولياء الأمور": "Parents", "المكافآت والشهادات": "Awards & certificates", "قريباً": "Soon", "منصة العلوم التعليمية": "Science learning platform",
+  "مدير": "Admin", "معلم": "Teacher", "طالب": "Student", "إظهار": "Show", "طالب / ولي أمر": "Student / Parent", "ولي أمر": "Parent", "أولياء الأمور": "Parents", "المكافآت والشهادات": "Awards & certificates", "قريباً": "Soon", "منصة العلوم التعليمية": "Science learning platform",
   "تسجيل الخروج": "Sign out", "القائمة": "Menu", "إغلاق": "Close",
   "أهلاً،": "Welcome,", "مختبرك الذكي للتعلّم: تابع طلابك وامتحاناتك ونتائجهم من مكان واحد.": "Your smart learning lab: follow your students, exams and results in one place.",
   "مرحباً بك في مختبر العلوم. اكتشف، تعلّم، وتابع تقدّمك خطوة بخطوة.": "Welcome to the science lab. Discover, learn and track your progress step by step.",

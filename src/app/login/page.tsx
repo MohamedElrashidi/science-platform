@@ -11,6 +11,7 @@ function LoginForm() {
   const [b, setB] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+  const [show, setShow] = useState(false);
   const [lang, setLang] = useState<LangCode>("ar");
   useEffect(() => { setLang(document.documentElement.lang === "en" ? "en" : "ar"); }, []);
   const t = (s: string) => tr(lang, s);
@@ -23,6 +24,8 @@ function LoginForm() {
       const body = mode !== "teacher" ? { username: a, code: b } : { email: a, password: b };
       const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       if (!r.ok) { setErr((await r.json().catch(() => ({}))).error || "تعذر الدخول"); setBusy(false); return; }
+      // اطلب من المتصفح حفظ بيانات الدخول (Chrome/Edge)
+      try { const PC = (window as any).PasswordCredential; if (PC && navigator.credentials) await navigator.credentials.store(new PC({ id: a, password: b, name: a })); } catch {}
       const next = params.get("next");
       // تحويل كامل للصفحة بعد ضبط الجلسة (أوثق من التنقل الداخلي)
       window.location.assign(next && next.startsWith("/") ? next : "/dashboard");
@@ -50,13 +53,14 @@ function LoginForm() {
             <button type="button" className={mode === "teacher" ? "on" : ""} onClick={() => { setMode("teacher"); setA(""); setB(""); setErr(""); }}>{t("معلم / مدير")}</button>
           </div>
           <label htmlFor="a">{mode !== "teacher" ? t("اسم المستخدم") : t("البريد الإلكتروني")}</label>
-          <input id="a" value={a} onChange={(e) => setA(e.target.value)} dir="ltr" required
+          <input id="a" name="username" value={a} onChange={(e) => setA(e.target.value)} dir="ltr" required
                  autoCapitalize="none" autoCorrect="off" autoComplete="username"
                  inputMode={mode === "teacher" ? "email" : "text"} />
           <label htmlFor="b">{mode !== "teacher" ? t("كود الدخول") : t("كلمة المرور")}</label>
-          <input id="b" type={mode !== "teacher" ? "text" : "password"} value={b}
+          <input id="b" name="password" type={show ? "text" : "password"} value={b}
                  onChange={(e) => setB(e.target.value)} dir="ltr" required
                  autoCapitalize={mode !== "teacher" ? "characters" : "none"} autoComplete="current-password" />
+          <label style={{ display: "flex", gap: 6, alignItems: "center", margin: "6px 0" }}><input type="checkbox" style={{ width: "auto" }} checked={show} onChange={(e) => setShow(e.target.checked)} />{t("إظهار")}</label>
           <p className="err" role="alert">{err}</p>
           {mode === "parent" && <p className="muted" style={{ marginTop: 0 }}><a href="/register">{t("ولي أمر جديد؟ سجّل حسابك")}</a></p>}
           <button disabled={busy} style={{ width: "100%" }}>{busy ? t("جارٍ الدخول…") : t("دخول")}</button>
