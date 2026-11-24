@@ -50,7 +50,7 @@ export default function ExamsPage() {
   return (
     <div className="card">
       <h1>الامتحانات</h1>
-      <p className="muted">استورد امتحاناً من <a href="/import">صفحة الاستيراد</a>، ثم اعتمد أسئلته وانشره وأسنده لصف.</p>
+      <p className="muted"><a className="btn" href="/exams/new" style={{ textDecoration: "none", display: "inline-grid", placeItems: "center" }}>+ امتحان جديد</a> اكتب امتحانك هنا مباشرة، أو استورده من <a href="/import">صفحة الاستيراد</a>، ثم اعتمد أسئلته وانشره وأسنده لصف.</p>
       <p className="err">{msg}</p>
       {!list.length && <p className="muted">لا توجد امتحانات بعد.</p>}
       {list.map((e) => (

@@ -15,6 +15,7 @@ export async function POST(req: Request) {
   const list: any[] = Array.isArray(body.exams) ? body.exams : [body];
   if (list.length > 30) return NextResponse.json({ error: "الحد 30 امتحاناً في المرة الواحدة" }, { status: 400 });
 
+  const autoApprove = body.auto_approve === true;   // أسئلة كتبها المعلم بنفسه في المنصة
   const supabase = await createClient();
   const me = g.me.id;
   const results: Result[] = [];
@@ -71,7 +72,7 @@ export async function POST(req: Request) {
       ex.questions.map((q) => ({
         owner_id: me, subject_id, lesson_id: (q.lesson && lessonIds.get(q.lesson)) || lesson_id, grade_level: ex.grade_level, qtype: q.qtype, prompt: q.prompt,
         instructions: q.instructions, media_kind: q.media_kind, media_url: q.media_url, data: q.data,
-        explanation: q.explanation, marks: q.marks, difficulty: q.difficulty, status: "pending_review",
+        explanation: q.explanation, marks: q.marks, difficulty: q.difficulty, status: autoApprove ? "approved" : "pending_review",
       }))
     ).select("id");
     if (qErr || !qs || qs.length !== ex.questions.length) {
