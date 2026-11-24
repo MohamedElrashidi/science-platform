@@ -41,7 +41,7 @@ export default async function Result({ params }: { params: Promise<{ id: string 
         </>) : pending ? <p className="muted" style={{ fontSize: "1.1rem" }}>تم تسليم إجاباتك. بعض الأسئلة بانتظار تصحيح المعلم، وستظهر درجتك بعد ذلك.</p>
           : <p className="muted" style={{ fontSize: "1.1rem" }}>تم تسليم إجاباتك بنجاح. سيعرض المعلم النتائج لاحقًا.</p>}
         <div className="row" style={{ justifyContent: "center", marginTop: 10 }}>
-          <Link className="btn ghost" href="/dashboard" style={{ textDecoration: "none", display: "inline-grid", placeItems: "center", background: "#fff", color: "var(--teal)", border: "1.5px solid var(--line)", boxShadow: "none" }}>الرئيسية</Link>
+          <Link className="btn ghost" href="/dashboard" style={{ textDecoration: "none", display: "inline-grid", placeItems: "center", background: "var(--card)", color: "var(--teal)", border: "1.5px solid var(--line)", boxShadow: "none" }}>الرئيسية</Link>
           {used < e.max_attempts && <Link className="btn" href={`/take/${e.id}`} style={{ textDecoration: "none", display: "inline-grid", placeItems: "center" }}>محاولة جديدة</Link>}
         </div>
       </div>

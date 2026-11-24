@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Cairo } from "next/font/google";
 import "./globals.css";
 import PwaRegister from "@/components/PwaRegister";
+import { getPrefs } from "@/lib/prefs";
 
 const cairo = Cairo({ subsets: ["arabic", "latin"], weight: ["400", "600", "700", "800"], display: "swap", variable: "--font-cairo" });
 
@@ -20,9 +21,10 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const { lang, theme } = await getPrefs();
   return (
-    <html lang="ar" dir="rtl" className={cairo.variable}>
+    <html lang={lang} dir={lang === "en" ? "ltr" : "rtl"} data-theme={theme} className={cairo.variable}>
       <body>
         {children}
         <PwaRegister />

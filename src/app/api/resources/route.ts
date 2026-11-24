@@ -25,14 +25,19 @@ export async function POST(req: Request) {
   const fd = await req.formData().catch(() => null);
   if (!fd) return NextResponse.json({ error: "طلب غير صحيح" }, { status: 400 });
   const title = String(fd.get("title") || "").trim().slice(0, 200);
-  const kind = ["worksheet", "activity"].includes(String(fd.get("kind"))) ? String(fd.get("kind")) : "worksheet";
+  const kind = ["worksheet", "activity", "video"].includes(String(fd.get("kind"))) ? String(fd.get("kind")) : "worksheet";
   const link = String(fd.get("link") || "").trim();
   const file = fd.get("file");
   if (!title) return NextResponse.json({ error: "أدخل عنوانًا" }, { status: 400 });
   const sb = await createClient();
   const base: any = { owner_id: g.me.id, title, kind, grade_level: String(fd.get("grade_level") || "").trim() || null, description: String(fd.get("description") || "").slice(0, 1000) || null, status: "draft" };
 
-  if (file instanceof File && file.size) {
+  const pre = String(fd.get("storage_path") || "");
+  if (pre) {   // رُفع مباشرةً إلى التخزين عبر رابط موقّع
+    const ext = (pre.split(".").pop() || "").toLowerCase();
+    if (!pre.startsWith(`${g.me.id}/`) || pre.includes("..") || !EXT[ext]) return NextResponse.json({ error: "مسار الملف غير صالح" }, { status: 400 });
+    Object.assign(base, { source: "file", storage_path: pre, filename: String(fd.get("filename") || "video").slice(0, 200), size: Number(fd.get("size")) || 0 });
+  } else if (file instanceof File && file.size) {
     const ext = (file.name.split(".").pop() || "").toLowerCase();
     if (!EXT[ext]) return NextResponse.json({ error: "نوع الملف غير مدعوم (PDF, HTML, صور, Word, PowerPoint, Excel, فيديو, صوت)" }, { status: 400 });
     if (file.size > MAX) return NextResponse.json({ error: "الملف أكبر من 4 ميغابايت. ارفعه على Google Drive أو YouTube وضع الرابط بدل الملف." }, { status: 400 });

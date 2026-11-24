@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { currentProfile } from "@/lib/auth";
 import Icon from "@/components/Icon";
 import AtomArt from "@/components/AtomArt";
+import { getPrefs } from "@/lib/prefs";
+import { tr } from "@/lib/i18n";
 import { WeeklyBars, ExamBars, Empty } from "@/components/Charts";
 
 const DAY = 86400000;
@@ -23,11 +25,14 @@ function Stat({ icon, label, value, trend, t, a }: { icon: string; label: string
 
 export default async function Dashboard() {
   const me = await currentProfile();
-  if (!me) return null;   // الـ layout يعالج الحالتين (غير مسجل / بلا ملف)
-  return me.role === "student" ? <StudentHome name={me.full_name} id={me.id} /> : <TeacherHome name={me.full_name} />;
+  if (!me) return null;
+  const { lang } = await getPrefs();
+  T = (x: string) => tr(lang, x);   // الـ layout يعالج الحالتين (غير مسجل / بلا ملف)
+  return me.role === "student" ? <StudentHome name={me.full_name} id={me.id} lang={lang} /> : <TeacherHome name={me.full_name} lang={lang} />;
 }
 
-async function TeacherHome({ name }: { name: string }) {
+async function TeacherHome({ name, lang }: { name: string; lang: "ar" | "en" }) {
+  const T = (x: string) => tr(lang, x);
   const sb = await createClient();   // كل الاستعلامات تحت RLS: المعلم يرى صفوفه وطلابه واختباراته فقط
   const [cls, exams, att, studs, pendQ, pendMan] = await Promise.all([
     sb.from("classes").select("id, name"),
@@ -78,21 +83,21 @@ async function TeacherHome({ name }: { name: string }) {
     <>
       <section className="hero">
         <AtomArt className="art" size={260} />
-        <h1>أهلاً، {name}</h1>
-        <p>مختبرك الذكي للتعلّم: تابع طلابك وامتحاناتك ونتائجهم من مكان واحد.</p>
+        <h1>{T("أهلاً،")} {name}</h1>
+        <p>{T("مختبرك الذكي للتعلّم: تابع طلابك وامتحاناتك ونتائجهم من مكان واحد.")}</p>
         <div className="actions">
-          <Link href="/import" className="a1"><Icon name="upload" size={18} />استيراد امتحان</Link>
-          <Link href="/students" className="a2"><Icon name="plus" size={18} />إضافة طلاب</Link>
-          <Link href="/classes" className="a2"><Icon name="layers" size={18} />الصفوف</Link>
+          <Link href="/import" className="a1"><Icon name="upload" size={18} />{T("استيراد امتحان")}</Link>
+          <Link href="/students" className="a2"><Icon name="plus" size={18} />{T("إضافة طلاب")}</Link>
+          <Link href="/classes" className="a2"><Icon name="layers" size={18} />{T("الصفوف")}</Link>
         </div>
       </section>
 
       <section className="stats">
-        <Stat icon="users" label="إجمالي الطلاب" value={String(students.length)} t="#DDF3EF" a="#176B70" />
-        <Stat icon="layers" label="الصفوف النشطة" value={String(classes.length)} t="#E8E8FA" a="#142B45" />
-        <Stat icon="exam" label="امتحانات منشورة" value={String(published)} t="#DDF3EF" a="#176B70" />
-        <Stat icon="check" label="تسليمات مكتملة" value={String(attempts.length)} trend={trend} t="#E8E8FA" a="#142B45" />
-        <Stat icon="trend" label="متوسط أداء الطلاب" value={overall === null ? "—" : `${Math.round(overall)}%`} t="#FCEBD0" a="#8A5A12" />
+        <Stat icon="users" label={T("إجمالي الطلاب")} value={String(students.length)} t="#DDF3EF" a="#176B70" />
+        <Stat icon="layers" label={T("الصفوف النشطة")} value={String(classes.length)} t="#E8E8FA" a="#142B45" />
+        <Stat icon="exam" label={T("امتحانات منشورة")} value={String(published)} t="#DDF3EF" a="#176B70" />
+        <Stat icon="check" label={T("تسليمات مكتملة")} value={String(attempts.length)} trend={trend} t="#E8E8FA" a="#142B45" />
+        <Stat icon="trend" label={T("متوسط أداء الطلاب")} value={overall === null ? "—" : `${Math.round(overall)}%`} t="#FCEBD0" a="#8A5A12" />
       </section>
 
       {alerts.length > 0 && <div style={{ marginBottom: 16 }}>{alerts.map((a, i) => (
@@ -100,14 +105,14 @@ async function TeacherHome({ name }: { name: string }) {
       ))}</div>}
 
       <section className="panels">
-        <div className="card"><div className="sec"><h2>النشاط الأسبوعي</h2><span className="badge">آخر 8 أسابيع</span></div><WeeklyBars data={weeks} /></div>
-        <div className="card"><div className="sec"><h2>أداء الامتحانات</h2><span className="badge g">متوسط الدرجات</span></div><ExamBars data={examBars} /></div>
+        <div className="card"><div className="sec"><h2>{T("النشاط الأسبوعي")}</h2><span className="badge">{T("آخر 8 أسابيع")}</span></div><WeeklyBars data={weeks} /></div>
+        <div className="card"><div className="sec"><h2>{T("أداء الامتحانات")}</h2><span className="badge g">{T("متوسط الدرجات")}</span></div><ExamBars data={examBars} /></div>
       </section>
 
       <section className="panels">
-        <div className="card"><div className="sec"><h2>مقارنة الصفوف</h2></div>
+        <div className="card"><div className="sec"><h2>{T("مقارنة الصفوف")}</h2></div>
           {classBars.length ? <ExamBars data={classBars} /> : <Empty text="تظهر المقارنة بعد تصحيح تسليمات طلاب من أكثر من صف." />}</div>
-        <div className="card"><div className="sec"><h2>حالة الامتحانات</h2></div>
+        <div className="card"><div className="sec"><h2>{T("حالة الامتحانات")}</h2></div>
           <div className="badges">
             <div className="bdg"><div className="bi"><Icon name="exam" /></div>{examList.length} إجمالي</div>
             <div className="bdg"><div className="bi"><Icon name="check" /></div>{published} منشور</div>
@@ -116,14 +121,14 @@ async function TeacherHome({ name }: { name: string }) {
       </section>
 
       <section className="panels">
-        <div className="card"><div className="sec"><h2>أحدث التسليمات</h2></div>
+        <div className="card"><div className="sec"><h2>{T("أحدث التسليمات")}</h2></div>
           {attempts.length === 0 ? <Empty text="لا توجد تسليمات بعد." /> : (
             <div className="feed">{attempts.slice(0, 5).map((a) => (
               <div className="it" key={a.id}><div className="dot">{(studById.get(a.student_id)?.full_name ?? "؟").charAt(0)}</div>
                 <div className="tx">{studById.get(a.student_id)?.full_name ?? "طالب"}<small>{examById.get(a.exam_id)?.title ?? "امتحان"} — {a.submitted_at ? fmt(a.submitted_at) : ""}</small></div>
                 {a.status === "graded" && a.percent !== null ? <span className="badge g">{Math.round(Number(a.percent))}%</span> : <span className="badge a">بانتظار التصحيح</span>}</div>
             ))}</div>)}</div>
-        <div className="card"><div className="sec"><h2>طلاب جدد</h2><Link href="/students">كل الطلاب</Link></div>
+        <div className="card"><div className="sec"><h2>{T("طلاب جدد")}</h2><Link href="/students">{T("كل الطلاب")}</Link></div>
           {students.length === 0 ? <Empty text="لا يوجد طلاب بعد." /> : (
             <div className="feed">{students.slice(0, 5).map((s) => (
               <div className="it" key={s.id}><div className="dot l">{s.full_name.charAt(0)}</div>
@@ -132,19 +137,20 @@ async function TeacherHome({ name }: { name: string }) {
       </section>
 
       <section className="card" style={{ marginTop: 16 }}>
-        <div className="sec"><h2>إجراءات سريعة</h2></div>
+        <div className="sec"><h2>{T("إجراءات سريعة")}</h2></div>
         <div className="qa">
-          <Link href="/import"><span className="qi"><Icon name="exam" /></span>استيراد امتحان</Link>
-          <Link href="/students"><span className="qi"><Icon name="plus" /></span>إضافة طالب</Link>
-          <span><span className="qi"><Icon name="file" /></span>إنشاء ورقة عمل<em>قريباً</em></span>
-          <span><span className="qi"><Icon name="spark" /></span>نشاط تفاعلي<em>قريباً</em></span>
+          <Link href="/import"><span className="qi"><Icon name="exam" /></span>{T("استيراد امتحان")}</Link>
+          <Link href="/students"><span className="qi"><Icon name="plus" /></span>{T("إضافة طالب")}</Link>
+          <span><span className="qi"><Icon name="file" /></span>{T("إنشاء ورقة عمل")}<em>{T("قريباً")}</em></span>
+          <span><span className="qi"><Icon name="spark" /></span>{T("نشاط تفاعلي")}<em>{T("قريباً")}</em></span>
         </div>
       </section>
     </>
   );
 }
 
-async function StudentHome({ name, id }: { name: string; id: string }) {
+async function StudentHome({ name, id, lang }: { name: string; id: string; lang: "ar" | "en" }) {
+  const T = (x: string) => tr(lang, x);
   const sb = await createClient();   // الطالب يرى امتحاناته المنشورة المسندة ومحاولاته فقط (RLS)
   const [ex, at, rs] = await Promise.all([
     sb.from("exams").select("id, title, duration_minutes, max_attempts, show_score, kind").eq("status", "published"),
@@ -172,25 +178,25 @@ async function StudentHome({ name, id }: { name: string; id: string }) {
     <>
       <section className="hero">
         <AtomArt className="art" size={260} />
-        <h1>أهلاً، {name}</h1>
-        <p>مرحباً بك في مختبر العلوم. اكتشف، تعلّم، وتابع تقدّمك خطوة بخطوة.</p>
+        <h1>{T("أهلاً،")} {name}</h1>
+        <p>{T("مرحباً بك في مختبر العلوم. اكتشف، تعلّم، وتابع تقدّمك خطوة بخطوة.")}</p>
       </section>
 
       <section className="stats">
-        <Stat icon="exam" label="امتحانات متاحة" value={String(available.length)} t="#DDF3EF" a="#176B70" />
-        <Stat icon="check" label="امتحانات مكتملة" value={String(done.length)} t="#E8E8FA" a="#142B45" />
-        <Stat icon="trend" label="متوسط درجاتي" value={mean === null ? "—" : `${Math.round(mean)}%`} t="#FCEBD0" a="#8A5A12" />
+        <Stat icon="exam" label={T("امتحانات متاحة")} value={String(available.length)} t="#DDF3EF" a="#176B70" />
+        <Stat icon="check" label={T("امتحانات مكتملة")} value={String(done.length)} t="#E8E8FA" a="#142B45" />
+        <Stat icon="trend" label={T("متوسط درجاتي")} value={mean === null ? "—" : `${Math.round(mean)}%`} t="#FCEBD0" a="#8A5A12" />
       </section>
 
       <section className="panels">
-        <div className="card"><div className="sec"><h2>الامتحانات المتاحة</h2></div>
+        <div className="card"><div className="sec"><h2>{T("الامتحانات المتاحة")}</h2></div>
           {available.length === 0 ? <Empty text="لا توجد امتحانات متاحة لك الآن." /> : (
             <div className="feed">{available.map((e) => (
               <div className="it" key={e.id}><div className="dot"><Icon name="exam" size={18} /></div>
                 <div className="tx">{e.title}<small>{e.duration_minutes ? `${e.duration_minutes} دقيقة` : "بلا حد زمني"} — المحاولات: {used.get(e.id) || 0} / {e.max_attempts}</small></div>
-                <Link href={`/take/${e.id}`} className="badge g" style={{ textDecoration: "none" }}>{inProg.has(e.id) ? "متابعة" : "ابدأ"}</Link></div>
+                <Link href={`/take/${e.id}`} className="badge g" style={{ textDecoration: "none" }}>{inProg.has(e.id) ? T("متابعة") : T("ابدأ")}</Link></div>
             ))}</div>)}</div>
-        <div className="card"><div className="sec"><h2>إنجازاتي</h2></div>
+        <div className="card"><div className="sec"><h2>{T("إنجازاتي")}</h2></div>
           <div className="badges">{badges.map((b, i) => (
             <div key={i} className={"bdg" + (b.on ? "" : " locked")}><div className="bi"><Icon name={b.icon} /></div>{b.t}</div>
           ))}</div></div>
@@ -198,18 +204,18 @@ async function StudentHome({ name, id }: { name: string; id: string }) {
 
       {res.length > 0 && (
         <section className="card" style={{ marginTop: 16 }}>
-          <div className="sec"><h2>أوراق العمل والأنشطة</h2></div>
+          <div className="sec"><h2>{T("أوراق العمل والأنشطة")}</h2></div>
           <div className="feed">{res.map((r) => (
             <Link key={r.id} href={`/open/${r.id}`} className="it" style={{ textDecoration: "none", color: "inherit" }}>
-              <div className="dot l"><Icon name={r.kind === "activity" ? "spark" : "file"} size={18} /></div>
-              <div className="tx">{r.title}<small>{r.kind === "activity" ? "نشاط تفاعلي" : "ورقة عمل"}</small></div>
-              <span className="badge g">فتح</span></Link>
+              <div className="dot l"><Icon name={r.kind === "video" ? "play" : r.kind === "activity" ? "spark" : "file"} size={18} /></div>
+              <div className="tx">{r.title}<small>{r.kind === "video" ? "فيديو شرح" : r.kind === "activity" ? "نشاط تفاعلي" : "ورقة عمل"}</small></div>
+              <span className="badge g">{T("فتح")}</span></Link>
           ))}</div>
         </section>
       )}
 
       <section className="card" style={{ marginTop: 16 }}>
-        <div className="sec"><h2>نتائجي الأخيرة</h2></div>
+        <div className="sec"><h2>{T("نتائجي الأخيرة")}</h2></div>
         {done.length === 0 ? <Empty text="ستظهر نتائجك هنا بعد تسليم أول امتحان." /> : (
           <div className="feed">{done.slice(0, 5).map((a) => (
             <div className="it" key={a.id}><div className="dot l"><Icon name="check" size={18} /></div>

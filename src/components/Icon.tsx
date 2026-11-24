@@ -18,6 +18,7 @@ const P: Record<string, string[]> = {
   plus: ["M12 5v14M5 12h14"],
   trend: ["M3 17l6-6 4 4 8-9", "M15 6h6v6"],
   check: ["M5 12l5 5 9-10"],
+  play: ["M5 4l14 8-14 8z"],
   layers: ["M12 3l9 5-9 5-9-5z", "M3 13l9 5 9-5"],
 };
 

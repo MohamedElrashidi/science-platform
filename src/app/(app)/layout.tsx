@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import { authState } from "@/lib/auth";
+import { getPrefs } from "@/lib/prefs";
+import { tr } from "@/lib/i18n";
 import AppShell, { type NavItem } from "@/components/AppShell";
 
 export const dynamic = "force-dynamic";
@@ -13,12 +15,13 @@ const STAFF: NavItem[] = [
   { href: "/subjects", label: "المواد والدروس", icon: "book" },
   { href: "/worksheets", label: "أوراق العمل", icon: "file" },
   { href: "/activities", label: "الأنشطة التفاعلية", icon: "spark" },
+  { href: "/videos", label: "الفيديوهات", icon: "play" },
   { href: "/bank", label: "بنك الأسئلة", icon: "bank" },
   { href: "/reports", label: "التقارير والتحليلات", icon: "chart" },
 ];
 const ADMIN_EXTRA: NavItem[] = [{ href: "/teachers", label: "المعلمون", icon: "shield" }];
 const SETTINGS: NavItem = { href: "/settings", label: "الإعدادات", icon: "settings" };
-const STUDENT: NavItem[] = [{ href: "/dashboard", label: "الرئيسية", icon: "home" }];
+const STUDENT: NavItem[] = [{ href: "/dashboard", label: "الرئيسية", icon: "home" }, SETTINGS];
 const ROLE_AR = { admin: "مدير", teacher: "معلم", student: "طالب" } as const;
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -41,5 +44,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const me = s.profile;
   const items = me.role === "student" ? STUDENT
     : [...STAFF, ...(me.role === "admin" ? ADMIN_EXTRA : []), SETTINGS];
-  return <AppShell items={items} name={me.full_name} roleLabel={ROLE_AR[me.role]}>{children}</AppShell>;
+  const { lang } = await getPrefs();
+  const shown = items.map((n) => ({ ...n, label: tr(lang, n.label) }));
+  return <AppShell items={shown} name={me.full_name} roleLabel={tr(lang, ROLE_AR[me.role])} lang={lang}>{children}</AppShell>;
 }

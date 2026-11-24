@@ -2,8 +2,9 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/client";
 import { Empty } from "@/components/Charts";
+import { createClient } from "@/lib/supabase/client";
 
-export default function ResourceManager({ kind, title, hint }: { kind: "worksheet" | "activity"; title: string; hint: string }) {
+export default function ResourceManager({ kind, title, hint }: { kind: "worksheet" | "activity" | "video"; title: string; hint: string }) {
   const [list, setList] = useState<any[] | null>(null);
   const [classes, setClasses] = useState<any[]>([]);
   const [msg, setMsg] = useState(""), [busy, setBusy] = useState(false);
@@ -14,6 +15,15 @@ export default function ResourceManager({ kind, title, hint }: { kind: "workshee
   async function add(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); setBusy(true); setMsg("");
     const form = e.currentTarget, fd = new FormData(form); fd.append("kind", kind);
+    const f = fd.get("file");
+    if (f instanceof File && f.size > 4 * 1024 * 1024) {   // ملف كبير: رفع مباشر إلى التخزين
+      try {
+        const u = await api<{ path: string; token: string }>("/api/resources/upload-url", "POST", { filename: f.name, size: f.size });
+        const up = await createClient().storage.from("content").uploadToSignedUrl(u.path, u.token, f);
+        if (up.error) throw new Error("تعذر رفع الملف");
+        fd.delete("file"); fd.append("storage_path", u.path); fd.append("filename", f.name); fd.append("size", String(f.size));
+      } catch (x: any) { setBusy(false); setMsg(x.message); return; }
+    }
     const r = await fetch("/api/resources", { method: "POST", body: fd });
     const j = await r.json().catch(() => ({}));
     setBusy(false);
@@ -34,9 +44,9 @@ export default function ResourceManager({ kind, title, hint }: { kind: "workshee
             <div><label>المرحلة / الصف الدراسي (اختياري)</label><input name="grade_level" placeholder="مثال: 8" /></div>
           </div>
           <div className="row">
-            <div><label>ملف (حتى 4 ميغابايت)</label><input type="file" name="file" accept=".pdf,.html,.htm,.png,.jpg,.jpeg,.webp,.gif,.docx,.pptx,.xlsx,.mp4,.mp3" /></div>
-            <div><label>أو رابط (Drive / YouTube …)</label><input name="link" dir="ltr" placeholder="https://" /></div>
-            <button disabled={busy}>{busy ? "جارٍ الرفع…" : "إضافة"}</button>
+            <div><label>ملف (حتى 50 ميغابايت)</label><input type="file" name="file" accept={kind === "video" ? ".mp4,.webm" : ".pdf,.html,.htm,.png,.jpg,.jpeg,.webp,.gif,.docx,.pptx,.xlsx,.mp4,.webm,.mp3"} /></div>
+            <div><label>{kind === "video" ? "أو رابط YouTube / Drive (الأفضل للفيديوهات الطويلة)" : "أو رابط (Drive / YouTube …)"}</label><input name="link" dir="ltr" placeholder="https://" /></div>
+            <button disabled={busy}>{busy ? "جارٍ الرفع… (لا تغلق الصفحة)" : "إضافة"}</button>
           </div>
         </form>
         <p className="err">{msg}</p>
