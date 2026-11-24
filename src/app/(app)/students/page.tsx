@@ -111,6 +111,22 @@ export default function StudentsPage() {
     load();
   }
 
+  // ---------- أكواد جديدة لكل طلاب صف ----------
+  const [bulkClass, setBulkClass] = useState("");
+  async function bulkReset() {
+    const list = students.filter((st) => String(st.class_id ?? "") === bulkClass && st.active);
+    if (!list.length) { setMsg("لا يوجد طلاب نشطون في هذا الصف."); return; }
+    if (!confirm(`إصدار أكواد جديدة لـ ${list.length} طالب؟ ستتوقف أكوادهم القديمة (إن وُجدت).`)) return;
+    setBusy(true); setMsg(""); const out: Card[] = []; const failed: string[] = [];
+    for (let i = 0; i < list.length; i++) {
+      setProg(`إصدار الأكواد ${i + 1} / ${list.length}`);
+      try { out.push(await api<Card>("/api/students/" + list[i].id + "/reset-code", "POST")); }
+      catch (x: any) { failed.push(`${list[i].full_name} (${x.message})`); }
+    }
+    setCards(out); setProg(""); setBusy(false);   // استبدال البطاقات الظاهرة بهذه الدفعة فقط
+    setMsg(`تم إصدار ${out.length} بطاقة. اضغط «طباعة البطاقات» الآن.` + (failed.length ? ` تعذر: ${failed.join(" | ")}` : ""));
+  }
+
   return (
     <>
       <div className="card no-print">
@@ -149,6 +165,18 @@ export default function StudentsPage() {
           </div>
         )}
         {busy && <p className="muted">{prog}</p>}
+      </div>
+
+      <div className="card no-print" style={{ marginTop: 14 }}>
+        <h2 style={{ marginTop: 0 }}>بطاقات دخول الصف</h2>
+        <p className="muted">يصدر كوداً جديداً لكل طالب نشط في الصف، ثم تطبع البطاقات دفعة واحدة. الأكواد لا تظهر إلا هنا مرة واحدة.</p>
+        <div className="row">
+          <div><select value={bulkClass} onChange={(e) => setBulkClass(e.target.value)} aria-label="الصف">
+            <option value="">اختر الصف</option>
+            {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </select></div>
+          <button disabled={busy || !bulkClass} onClick={bulkReset}>{busy && prog ? prog : "إصدار بطاقات الصف"}</button>
+        </div>
       </div>
 
       {cards.length > 0 && (
