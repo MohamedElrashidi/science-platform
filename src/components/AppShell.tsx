@@ -3,13 +3,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Icon from "./Icon";
+import Avatar from "./Avatar";
 import { Logo } from "./AtomArt";
 import { tr, type LangCode } from "@/lib/i18n";
 
 export type NavItem = { href: string; label: string; icon: string; soon?: boolean };
 
-export default function AppShell({ items, name, roleLabel, lang = "ar", children }: {
-  items: NavItem[]; name: string; roleLabel: string; lang?: LangCode; children: React.ReactNode;
+export default function AppShell({ items, name, userId, roleLabel, lang = "ar", children }: {
+  items: NavItem[]; name: string; userId: string; roleLabel: string; lang?: LangCode; children: React.ReactNode;
 }) {
   const t = (s: string) => tr(lang, s);
   const path = usePathname();
@@ -35,7 +36,7 @@ export default function AppShell({ items, name, roleLabel, lang = "ar", children
         </div>
 
         <div className="me">
-          <div className="avatar">{name.trim().charAt(0)}</div>
+          <Avatar id={userId} name={name} />
           <div><div className="me-n">{name}</div><div className="me-r">{roleLabel}</div></div>
         </div>
 

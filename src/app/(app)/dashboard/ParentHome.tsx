@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Profile } from "@/lib/auth";
 import { parentChildren, childReport } from "@/lib/parent";
+import Avatar from "@/components/Avatar";
 import AddChild from "./AddChild";
 import ProgressChart from "@/components/ProgressChart";
 import { ExamBars, Empty } from "@/components/Charts";
@@ -52,7 +53,7 @@ export default async function ParentHome({ me, child }: { me: Profile; child?: s
       </div>
 
       <div className="card" style={{ marginTop: 16 }}>
-        <div className="sec"><h2>{kid.full_name}{r.className ? ` — ${r.className}` : ""}</h2></div>
+        <div className="sec" style={{ justifyContent: "flex-start", gap: 12 }}><Avatar id={kid.id} name={kid.full_name} size={52} /><h2>{kid.full_name}{r.className ? ` — ${r.className}` : ""}</h2></div>
         <div className="stats">
           <div className="stat"><div className="v">{pct === null ? "—" : pct + "%"}</div><div className="l">المتوسط العام</div></div>
           <div className="stat" style={{ ["--tint" as any]: "#E8E8FA" }}><div className="v">{r.rank ? `${r.rank} / ${r.of}` : "—"}</div><div className="l">الترتيب في الصف</div></div>

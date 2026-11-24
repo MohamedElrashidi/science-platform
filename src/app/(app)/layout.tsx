@@ -51,5 +51,5 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     : [...STAFF, ...(me.role === "admin" ? ADMIN_EXTRA : []), SETTINGS];
   const { lang } = await getPrefs();
   const shown = items.map((n) => ({ ...n, label: tr(lang, n.label) }));
-  return <AppShell items={shown} name={me.full_name} roleLabel={tr(lang, ROLE_AR[me.role])} lang={lang}>{children}</AppShell>;
+  return <AppShell items={shown} name={me.full_name} userId={me.id} roleLabel={tr(lang, ROLE_AR[me.role])} lang={lang}>{children}</AppShell>;
 }

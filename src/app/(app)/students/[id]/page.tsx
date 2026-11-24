@@ -2,6 +2,7 @@ import Link from "next/link";
 import { currentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { childReport } from "@/lib/parent";
+import Avatar from "@/components/Avatar";
 import ProgressChart from "@/components/ProgressChart";
 import { ExamBars, Empty } from "@/components/Charts";
 
@@ -19,7 +20,7 @@ export default async function StudentProgress({ params }: { params: Promise<{ id
   return (
     <>
       <div className="card">
-        <div className="sec"><h1 style={{ margin: 0 }}>{s.full_name}{r.className ? ` — ${r.className}` : ""}</h1><Link href="/students">رجوع للطلاب</Link></div>
+        <div className="sec"><h1 style={{ margin: 0, display: "flex", alignItems: "center", gap: 12 }}><Avatar id={s.id} name={s.full_name} size={56} />{s.full_name}{r.className ? ` — ${r.className}` : ""}</h1><Link href="/students">رجوع للطلاب</Link></div>
         <div className="stats" style={{ marginTop: 12 }}>
           <div className="stat"><div className="v">{pct === null ? "—" : pct + "%"}</div><div className="l">المتوسط العام</div></div>
           <div className="stat" style={{ ["--tint" as any]: "#E8E8FA" }}><div className="v">{r.rank ? `${r.rank} / ${r.of}` : "—"}</div><div className="l">الترتيب في الصف</div></div>
