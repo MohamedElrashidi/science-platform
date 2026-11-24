@@ -54,3 +54,20 @@ export async function childReport(child: { id: string; full_name: string; class_
   const exams = graded.map((a) => ({ id: a.id as number, title: (a.exams?.title as string) || "امتحان", percent: Number(a.percent), at: a.submitted_at as string | null }));
   return { className: (cls.data as any)?.name ?? null, exams, pending, myAvg, rank, of, classAvg, lessons };
 }
+
+/** يتحقق من كود الابن (مع حد للمحاولات الفاشلة). يعيد خطأ نصيًا أو null عند النجاح. */
+export async function verifyChildCode(studentId: string, codeRaw: string): Promise<string | null> {
+  const d = createAdminClient();
+  const code = codeRaw.trim().toUpperCase();
+  const { data: st } = await d.from("profiles").select("id, username").eq("id", studentId).eq("role", "student").eq("active", true).maybeSingle();
+  if (!st || code.length < 6) return "بيانات غير صحيحة";
+  const key = "reg:" + st.username;
+  const since = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+  const { count } = await d.from("login_log").select("id", { count: "exact", head: true }).eq("username", key).eq("ok", false).gte("at", since);
+  if ((count ?? 0) >= 8) return "محاولات كثيرة. حاول بعد 10 دقائق";
+  const { data: c } = await d.from("student_codes").select("code").eq("student_id", studentId).maybeSingle();
+  if (!c) return "تعذر التحقق من الكود. اطلب من المعلم توليد كود جديد للطالب";
+  const ok = c.code.toUpperCase() === code;
+  await d.from("login_log").insert({ username: key, ip: "", ok });
+  return ok ? null : "كود الطالب غير صحيح";
+}

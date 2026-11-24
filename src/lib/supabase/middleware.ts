@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 type CookieToSet = { name: string; value: string; options?: any };
 
-const PUBLIC = ["/login", "/manifest.webmanifest", "/sw.js", "/icons", "/api/auth/student-login", "/api/auth/login"];
+const PUBLIC = ["/login", "/manifest.webmanifest", "/sw.js", "/icons", "/api/auth/student-login", "/api/auth/login", "/register", "/api/public", "/api/parents/register"];
 
 /** يجدد جلسة Supabase ويحوّل غير المسجلين إلى صفحة الدخول. */
 export async function updateSession(request: NextRequest) {

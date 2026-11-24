@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Profile } from "@/lib/auth";
 import { parentChildren, childReport } from "@/lib/parent";
+import AddChild from "./AddChild";
 import { ExamBars, Empty } from "@/components/Charts";
 
 const band = (p: number): [string, string] => (p >= 85 ? ["ممتاز", "g"] : p >= 65 ? ["جيد", ""] : p >= 50 ? ["مقبول", "a"] : ["يحتاج دعمًا", "a"]);
@@ -10,7 +11,7 @@ const fmt = (d: string | null) => (d ? new Date(d).toLocaleDateString("ar", { da
 export default async function ParentHome({ me, child }: { me: Profile; child?: string }) {
   const kids = await parentChildren(me.id);
   if (!kids.length) {
-    return <div className="card"><h1>أهلاً {me.full_name}</h1><Empty text="لم يُربط حسابك بأي طالب بعد. تواصل مع معلم المادة." /></div>;
+    return <><div className="card"><h1>أهلاً {me.full_name}</h1><Empty text="لم يُربط حسابك بأي طالب بعد. أضف ابنك بكوده." /></div><AddChild /></>;
   }
   const kid = kids.find((k) => k.id === child) ?? kids[0];
   const r = await childReport(kid);
@@ -81,6 +82,7 @@ export default async function ParentHome({ me, child }: { me: Profile; child?: s
                 <tr key={e.id}><td>{e.title}</td><td>{fmt(e.at)}</td><td>{Math.round(e.percent)}%</td><td><span className={"badge " + band(e.percent)[1]}>{band(e.percent)[0]}</span></td></tr>))}</tbody></table></div>
           </>)}
       </div>
+      <AddChild />
     </>
   );
 }
