@@ -17,6 +17,7 @@ const STAFF: NavItem[] = [
   { href: "/activities", label: "الأنشطة التفاعلية", icon: "spark" },
   { href: "/videos", label: "الفيديوهات", icon: "play" },
   { href: "/bank", label: "بنك الأسئلة", icon: "bank" },
+  { href: "/awards", label: "المكافآت والشهادات", icon: "award" },
   { href: "/reports", label: "التقارير والتحليلات", icon: "chart" },
 ];
 const ADMIN_EXTRA: NavItem[] = [{ href: "/teachers", label: "المعلمون", icon: "shield" }];

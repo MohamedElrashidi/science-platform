@@ -20,6 +20,7 @@ const P: Record<string, string[]> = {
   check: ["M5 12l5 5 9-10"],
   play: ["M5 4l14 8-14 8z"],
   layers: ["M12 3l9 5-9 5-9-5z", "M3 13l9 5 9-5"],
+  award: ["M8.5 13L7 21l5-3 5 3-1.5-8", "M12 3a5 5 0 100 10 5 5 0 000-10z"],
 };
 
 export default function Icon({ name, size = 20 }: { name: string; size?: number }) {
