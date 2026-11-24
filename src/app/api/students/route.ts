@@ -11,7 +11,7 @@ export async function GET() {
   if (!me || (me.role !== "admin" && me.role !== "teacher")) return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
   const supabase = await createClient();   // RLS تحدد الطلاب المتاحين
   const { data } = await supabase.from("profiles")
-    .select("id, full_name, username, class_id, active, grade_level").eq("role", "student").order("full_name");
+    .select("id, full_name, username, class_id, active, grade_level, phone").eq("role", "student").order("full_name");
   return NextResponse.json(data || []);
 }
 
@@ -55,7 +55,7 @@ export async function POST(req: Request) {
   }
   const { error: pErr } = await admin.from("profiles").insert({
     id: userId, role: "student", full_name, username, class_id,
-    phone: b.phone || null, guardian_name: b.guardian_name || null,
+    phone: String(b.phone || "").trim() || null, guardian_name: b.guardian_name || null,
     grade_level: b.grade_level || null, created_by: me.id,
   });
   if (pErr) {

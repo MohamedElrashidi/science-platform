@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/client";
 
-type Stu = { id: string; full_name: string; username: string; class_id: number | null; active: boolean };
+type Stu = { id: string; full_name: string; username: string; class_id: number | null; active: boolean; phone?: string | null };
 type Cls = { id: number; name: string };
 type Card = { full_name: string; username: string; access_code: string };
 
@@ -27,10 +27,12 @@ export default function StudentsPage() {
     e.preventDefault(); setBusy(true); setMsg("");
     const out: Card[] = []; const failed: string[] = [];
     for (const line of bulk.split("\n").map((l) => l.trim()).filter(Boolean)) {
-      const [full_name, username] = line.split(/[,،;\t]/).map((x) => x.trim());
+      const [full_name, ...rest] = line.split(/[,،;\t]/).map((x) => x.trim());
+      const phone = rest.find((x) => /^\+?[\d\s-]{7,}$/.test(x)) || "";
+      const username = rest.find((x) => x && x !== phone) || "";
       try {
         const r = await api<{ username: string; access_code: string }>("/api/students", "POST",
-          { full_name, username, class_id: classId ? Number(classId) : null });
+          { full_name, username, phone, class_id: classId ? Number(classId) : null });
         out.push({ full_name, username: r.username, access_code: r.access_code });
       } catch (x: any) { failed.push(`${line} ← ${x.message}`); }
     }
@@ -53,7 +55,7 @@ export default function StudentsPage() {
   }
 
   // ---------- استيراد من Excel / CSV ----------
-  type Row = { name: string; cls: string; username: string };
+  type Row = { name: string; cls: string; username: string; phone: string };
   const [rows, setRows] = useState<Row[]>([]);
   const [prog, setProg] = useState("");
   const norm = (x: string) => x.replace(/\s+/g, " ").trim();
@@ -75,7 +77,7 @@ export default function StudentsPage() {
       } else { setMsg("الملف يجب أن يكون .xlsx أو .csv"); return; }
       if (table.length && /^(الاسم|اسم|name)/i.test(cellStr(table[0][0]))) table = table.slice(1);   // صف العناوين
       const parsed = table
-        .map((r) => ({ name: norm(cellStr(r[0])), cls: norm(cellStr(r[1])), username: cellStr(r[2]).toLowerCase() }))
+        .map((r) => ({ name: norm(cellStr(r[0])), cls: norm(cellStr(r[1])), username: cellStr(r[2]).toLowerCase(), phone: cellStr(r[3]) }))
         .filter((r) => r.name);
       if (!parsed.length) { setMsg("لم أجد أسماء في الملف. العمود الأول للاسم والثاني للصف."); return; }
       if (parsed.length > 300) { setMsg("الحد 300 طالب في المرة الواحدة."); return; }
@@ -101,7 +103,7 @@ export default function StudentsPage() {
         i++; setProg(`إنشاء الطلاب ${i} / ${rows.length}`);
         try {
           const res = await api<{ username: string; access_code: string }>("/api/students", "POST",
-            { full_name: r.name, username: r.username || undefined, class_id: r.cls ? ids.get(r.cls) ?? null : null });
+            { full_name: r.name, username: r.username || undefined, phone: r.phone, class_id: r.cls ? ids.get(r.cls) ?? null : null });
           out.push({ full_name: r.name, username: res.username, access_code: res.access_code });
         } catch (x: any) { failed.push(`${r.name} (${x.message})`); }
       }
@@ -149,9 +151,9 @@ export default function StudentsPage() {
             <option value="">بدون صف</option>
             {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
-          <label>الطلاب (سطر لكل طالب: الاسم فقط، أو الاسم ثم فاصلة ثم اسم مستخدم بالإنجليزية)</label>
+          <label>الطلاب — سطر لكل طالب: الاسم، ثم (اختياري) فاصلة ورقم واتساب ولي الأمر، ثم (اختياري) اسم مستخدم بالإنجليزية</label>
           <textarea value={bulk} onChange={(e) => setBulk(e.target.value)} dir="auto"
-            placeholder={"محمد أحمد\nمحمد صادق"} required />
+            placeholder={"محمد أحمد، 0501234567\nمحمد صادق، 0509876543"} required />
           <button disabled={busy} style={{ marginTop: 10 }}>{busy ? "جارٍ الإضافة…" : "إضافة الطلاب"}</button>
         </form>
         <p className={msg.includes("تعذر") ? "err" : "ok"}>{msg}</p>
@@ -159,7 +161,7 @@ export default function StudentsPage() {
 
       <div className="card no-print" style={{ marginTop: 14 }}>
         <h2 style={{ marginTop: 0 }}>استيراد من Excel</h2>
-        <p className="muted">ملف .xlsx أو .csv: العمود الأول <b>اسم الطالب</b>، والثاني <b>الصف</b> (يُنشأ تلقائياً إن لم يكن موجوداً)، والثالث اختياري لاسم المستخدم. صف العناوين اختياري.</p>
+        <p className="muted">ملف .xlsx أو .csv: العمود الأول <b>اسم الطالب</b>، والثاني <b>الصف</b> (يُنشأ تلقائياً إن لم يكن موجوداً)، والثالث اختياري لاسم المستخدم، والرابع اختياري لرقم واتساب ولي الأمر. صف العناوين اختياري.</p>
         <input type="file" accept=".xlsx,.csv" onChange={onFile} disabled={busy} />
         {rows.length > 0 && (
           <div style={{ marginTop: 12 }}>
@@ -214,7 +216,7 @@ export default function StudentsPage() {
 
       <div className="card no-print" style={{ marginTop: 14 }}>
         <div className="tbl"><table>
-          <thead><tr><th>الاسم</th><th>اسم المستخدم</th><th>الصف</th><th>الحالة</th><th></th></tr></thead>
+          <thead><tr><th>الاسم</th><th>اسم المستخدم</th><th>الصف</th><th>رقم ولي الأمر</th><th>الحالة</th><th></th></tr></thead>
           <tbody>
             {students.map((s) => (
               <tr key={s.id}>
@@ -222,12 +224,13 @@ export default function StudentsPage() {
                 <td><select value={s.class_id ?? ""} onChange={(e) => setClass(s, e.target.value)} aria-label="الصف">
                   <option value="">—</option>{classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select></td>
+                <td dir="ltr"><a href="#" onClick={(e) => { e.preventDefault(); const v = prompt("رقم واتساب ولي الأمر", s.phone || ""); if (v !== null) api("/api/students/" + s.id, "PATCH", { phone: v }).then(load).catch((x) => setMsg(x.message)); }}>{s.phone || "إضافة رقم"}</a></td>
                 <td>{s.active ? "نشط" : "موقوف"}</td>
                 <td><button className="ghost" onClick={() => oneCard(s)}>بطاقة</button>{" "}<button className="ghost" onClick={() => reset(s)}>كود جديد</button>{" "}
                     <button className="ghost" onClick={() => toggle(s)}>{s.active ? "إيقاف" : "تفعيل"}</button></td>
               </tr>
             ))}
-            {!students.length && <tr><td colSpan={5} className="muted">لا يوجد طلاب بعد.</td></tr>}
+            {!students.length && <tr><td colSpan={6} className="muted">لا يوجد طلاب بعد.</td></tr>}
           </tbody>
         </table></div>
       </div>

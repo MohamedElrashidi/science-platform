@@ -17,6 +17,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   const b = await req.json().catch(() => ({}));
   const patch: Record<string, unknown> = {};
   if (typeof b.full_name === "string" && b.full_name.trim().length >= 2) patch.full_name = b.full_name.trim();
+  if (typeof b.phone === "string") patch.phone = b.phone.trim().slice(0, 30) || null;
   if (typeof b.active === "boolean") patch.active = b.active;
   if ("class_id" in b) {
     if (b.class_id) {
