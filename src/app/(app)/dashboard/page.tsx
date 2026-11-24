@@ -25,9 +25,8 @@ function Stat({ icon, label, value, trend, t, a }: { icon: string; label: string
 
 export default async function Dashboard() {
   const me = await currentProfile();
-  if (!me) return null;
+  if (!me) return null;   // الـ layout يعالج الحالتين (غير مسجل / بلا ملف)
   const { lang } = await getPrefs();
-  T = (x: string) => tr(lang, x);   // الـ layout يعالج الحالتين (غير مسجل / بلا ملف)
   return me.role === "student" ? <StudentHome name={me.full_name} id={me.id} lang={lang} /> : <TeacherHome name={me.full_name} lang={lang} />;
 }
 
