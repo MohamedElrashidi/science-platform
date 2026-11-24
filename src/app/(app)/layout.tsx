@@ -17,7 +17,7 @@ const STAFF: NavItem[] = [
   { href: "/reports", label: "التقارير والتحليلات", icon: "chart" },
 ];
 const ADMIN_EXTRA: NavItem[] = [{ href: "/teachers", label: "المعلمون", icon: "shield" }];
-const SETTINGS: NavItem = { href: "/settings", label: "الإعدادات", icon: "settings", soon: true };
+const SETTINGS: NavItem = { href: "/settings", label: "الإعدادات", icon: "settings" };
 const STUDENT: NavItem[] = [{ href: "/dashboard", label: "الرئيسية", icon: "home" }];
 const ROLE_AR = { admin: "مدير", teacher: "معلم", student: "طالب" } as const;
 
