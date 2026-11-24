@@ -24,10 +24,10 @@ export async function POST(req: Request) {
   }
   const b = await req.json().catch(() => ({}));
   const full_name = String(b.full_name || "").trim();
-  const username = String(b.username || "").trim().toLowerCase();
+  const given = String(b.username || "").trim().toLowerCase();
   const class_id = b.class_id ? Number(b.class_id) : null;
   if (full_name.length < 2) return NextResponse.json({ error: "الاسم مطلوب" }, { status: 400 });
-  if (!USERNAME_RE.test(username)) {
+  if (given && !USERNAME_RE.test(given)) {
     return NextResponse.json({ error: "اسم المستخدم: 3-30 حرفاً إنجليزياً صغيراً أو أرقاماً أو . _ -" }, { status: 400 });
   }
 
@@ -40,13 +40,18 @@ export async function POST(req: Request) {
 
   const admin = createAdminClient();
   const code = makeCode();
-  const { data: created, error } = await admin.auth.admin.createUser({
-    email: studentEmail(username),
-    password: code,
-    email_confirm: true,
-  });
-  if (error || !created.user) {
-    const dup = /already|registered|exists/i.test(error?.message || "");
+  let username = given;
+  let created: Awaited<ReturnType<typeof admin.auth.admin.createUser>>["data"] | null = null;
+  let lastErr = "";
+  for (let i = 0; i < 6 && !created?.user; i++) {
+    if (!given) username = "s" + randomInt(10000, 100000);   // توليد تلقائي
+    const r = await admin.auth.admin.createUser({ email: studentEmail(username), password: code, email_confirm: true });
+    if (r.data?.user) { created = r.data; break; }
+    lastErr = r.error?.message || "";
+    if (given || !/already|registered|exists/i.test(lastErr)) break;   // اسم محدد: لا إعادة محاولة
+  }
+  if (!created?.user) {
+    const dup = /already|registered|exists/i.test(lastErr);
     return NextResponse.json({ error: dup ? "اسم المستخدم مستخدم" : "تعذر إنشاء الحساب" }, { status: dup ? 409 : 500 });
   }
   const { error: pErr } = await admin.from("profiles").insert({

@@ -62,9 +62,9 @@ export default function StudentsPage() {
             <option value="">بدون صف</option>
             {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
-          <label>الطلاب (سطر لكل طالب: الاسم، اسم المستخدم بالإنجليزية)</label>
+          <label>الطلاب (سطر لكل طالب: الاسم فقط، أو الاسم ثم فاصلة ثم اسم مستخدم بالإنجليزية)</label>
           <textarea value={bulk} onChange={(e) => setBulk(e.target.value)} dir="auto"
-            placeholder={"أحمد علي، ahmed.ali\nسارة محمد، sara.m"} required />
+            placeholder={"محمد أحمد\nمحمد صادق"} required />
           <button disabled={busy} style={{ marginTop: 10 }}>{busy ? "جارٍ الإضافة…" : "إضافة الطلاب"}</button>
         </form>
         <p className={msg.includes("تعذر") ? "err" : "ok"}>{msg}</p>
