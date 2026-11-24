@@ -37,7 +37,7 @@ function LoginForm() {
       <aside className="login-brand">
         <AtomArt className="art" size={340} />
         <Logo size={56} />
-        <h1>RASHIDI-LAB</h1>
+        <h1>ELRASHIDI - PLATFORM</h1>
         <p>{t("تجربة التعلّم الذكية: امتحانات وأنشطة ومتابعة لتقدّم كل طالب.")}</p>
       </aside>
       <div className="login-form">

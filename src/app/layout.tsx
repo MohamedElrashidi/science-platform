@@ -7,10 +7,10 @@ import { getPrefs } from "@/lib/prefs";
 const cairo = Cairo({ subsets: ["arabic", "latin"], weight: ["400", "600", "700", "800"], display: "swap", variable: "--font-cairo" });
 
 export const metadata: Metadata = {
-  title: { default: "RASHIDI-LAB", template: "%s | RASHIDI-LAB" },
+  title: { default: "ELRASHIDI - PLATFORM", template: "%s | ELRASHIDI - PLATFORM" },
   description: "منصة عربية للاختبارات وأوراق العمل والأنشطة التفاعلية ومتابعة تقدم الطلاب",
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, title: "RASHIDI-LAB", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "ELRASHIDI - PLATFORM", statusBarStyle: "default" },
   icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-touch-icon.png" },
 };
 

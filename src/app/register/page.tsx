@@ -26,7 +26,7 @@ export default function Register() {
     <div className="center">
       <form className="card" style={{ width: "100%", maxWidth: 440 }} onSubmit={submit}>
         <h1>تسجيل ولي أمر</h1>
-        <p className="muted" style={{ marginTop: 0 }}>RASHIDI-LAB — أنشئ اسم المستخدم وكلمة المرور، واكتب رقمك، ثم اختر الصف والابن واكتب كود دخول ابنك. لا يكتمل التسجيل إلا بذلك.</p>
+        <p className="muted" style={{ marginTop: 0 }}>ELRASHIDI - PLATFORM — أنشئ اسم المستخدم وكلمة المرور، واكتب رقمك، ثم اختر الصف والابن واكتب كود دخول ابنك. لا يكتمل التسجيل إلا بذلك.</p>
         <label>اسم ولي الأمر</label>
         <input value={f.full_name} onChange={(e) => setF({ ...f, full_name: e.target.value })} required />
         <label>اسم مستخدم (إنجليزي)</label>

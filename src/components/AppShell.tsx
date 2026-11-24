@@ -20,7 +20,7 @@ export default function AppShell({ items, name, roleLabel, lang = "ar", children
     <div className="shell">
       <header className="mbar no-print">
         <button className="iconbtn" aria-label={t("القائمة")} onClick={() => setOpen(true)}><Icon name="menu" /></button>
-        <Link href="/dashboard" className="home-link" aria-label={t("الرئيسية")}><strong>RASHIDI-LAB</strong></Link>
+        <Link href="/dashboard" className="home-link" aria-label={t("الرئيسية")}><strong>ELRASHIDI - PLATFORM</strong></Link>
         <span style={{ width: 44 }} />
       </header>
       {open && <div className="scrim no-print" onClick={() => setOpen(false)} />}
@@ -29,7 +29,7 @@ export default function AppShell({ items, name, roleLabel, lang = "ar", children
         <div className="brand">
           <Link href="/dashboard" className="home-link brand-link" aria-label={t("الرئيسية")}>
             <Logo />
-            <div><div className="brand-t">RASHIDI-LAB</div><div className="brand-s">{t("منصة العلوم التعليمية")}</div></div>
+            <div><div className="brand-t">ELRASHIDI - PLATFORM</div><div className="brand-s">{t("منصة العلوم التعليمية")}</div></div>
           </Link>
           <button className="iconbtn close" aria-label={t("إغلاق")} onClick={() => setOpen(false)}><Icon name="close" /></button>
         </div>

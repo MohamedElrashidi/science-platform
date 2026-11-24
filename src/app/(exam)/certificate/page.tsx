@@ -51,7 +51,7 @@ export default async function Certificates({ searchParams }: { searchParams: Pro
         <div className="cert" key={r.id}>
           <div className="frame" /><div className="frame2" />
           <div className="in">
-            <div><div className="brand">RASHIDI-LAB</div><div className="school">مدرسة الشيخ سعود بن صقر – فرع 1</div></div>
+            <div><div className="brand">ELRASHIDI - PLATFORM</div><div className="school">مدرسة الشيخ سعود بن صقر – فرع 1</div></div>
             <div>
               <div className="medal">{r.rank === 1 ? "🥇" : r.rank === 2 ? "🥈" : r.rank === 3 ? "🥉" : "🏅"}</div>
               <h1>شهادة تقدير</h1>
