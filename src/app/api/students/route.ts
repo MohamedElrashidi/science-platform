@@ -7,6 +7,15 @@ import { currentProfile, studentEmail, USERNAME_RE } from "@/lib/auth";
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // بلا حروف متشابهة (0/O, 1/I)
 const makeCode = () => Array.from({ length: 8 }, () => ALPHABET[randomInt(ALPHABET.length)]).join("");
 
+export async function GET() {
+  const me = await currentProfile();
+  if (!me || me.role === "student") return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
+  const supabase = await createClient();   // RLS تحدد الطلاب المتاحين
+  const { data } = await supabase.from("profiles")
+    .select("id, full_name, username, class_id, active, grade_level").eq("role", "student").order("full_name");
+  return NextResponse.json(data || []);
+}
+
 // إنشاء حساب طالب بواسطة المعلم/المدير. يُعاد كود الدخول مرة واحدة فقط ولا يُخزَّن نصاً.
 export async function POST(req: Request) {
   const me = await currentProfile();

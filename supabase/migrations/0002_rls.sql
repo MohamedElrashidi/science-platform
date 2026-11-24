@@ -52,7 +52,7 @@ alter table public.login_log enable row level security;   -- بلا سياسات
 
 -- profiles
 create policy profiles_read on public.profiles for select
-  using (public.can_see_student(id) or id = auth.uid() or public.is_staff());
+  using (id = auth.uid() or public.can_see_student(id));
 create policy profiles_admin_write on public.profiles for all
   using (public.is_admin()) with check (public.is_admin());
 
