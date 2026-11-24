@@ -157,6 +157,7 @@ async function StudentHome({ name, id }: { name: string; id: string }) {
   const mean = avg(scored);
   const used = new Map<number, number>();
   attempts.forEach((a) => used.set(a.exam_id, (used.get(a.exam_id) || 0) + 1));
+  const inProg = new Set(attempts.filter((a) => a.status === "in_progress").map((a) => a.exam_id));
   const available = exams.filter((e) => (used.get(e.id) || 0) < e.max_attempts);
 
   const badges = [
@@ -185,7 +186,7 @@ async function StudentHome({ name, id }: { name: string; id: string }) {
             <div className="feed">{available.map((e) => (
               <div className="it" key={e.id}><div className="dot"><Icon name="exam" size={18} /></div>
                 <div className="tx">{e.title}<small>{e.duration_minutes ? `${e.duration_minutes} دقيقة` : "بلا حد زمني"} — المحاولات: {used.get(e.id) || 0} / {e.max_attempts}</small></div>
-                <span className="badge a">البدء قريباً</span></div>
+                <Link href={`/take/${e.id}`} className="badge g" style={{ textDecoration: "none" }}>{inProg.has(e.id) ? "متابعة" : "ابدأ"}</Link></div>
             ))}</div>)}</div>
         <div className="card"><div className="sec"><h2>إنجازاتي</h2></div>
           <div className="badges">{badges.map((b, i) => (
@@ -198,7 +199,7 @@ async function StudentHome({ name, id }: { name: string; id: string }) {
         {done.length === 0 ? <Empty text="ستظهر نتائجك هنا بعد تسليم أول امتحان." /> : (
           <div className="feed">{done.slice(0, 5).map((a) => (
             <div className="it" key={a.id}><div className="dot l"><Icon name="check" size={18} /></div>
-              <div className="tx">{exams.find((e) => e.id === a.exam_id)?.title ?? "امتحان"}<small>{a.submitted_at ? fmt(a.submitted_at) : ""}</small></div>
+              <Link href={`/result/${a.id}`} className="tx" style={{ textDecoration: "none", color: "inherit" }}>{exams.find((e) => e.id === a.exam_id)?.title ?? "امتحان"}<small>{a.submitted_at ? fmt(a.submitted_at) : ""}</small></Link>
               {a.status === "graded" && a.percent !== null && showScore.get(a.exam_id) === true
                 ? <span className="badge g">{Math.round(Number(a.percent))}%</span> : <span className="badge a">قيد التصحيح</span>}</div>
           ))}</div>)}

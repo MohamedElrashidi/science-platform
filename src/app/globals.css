@@ -261,3 +261,44 @@ input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 4px rgba(23,107,11
 .snav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.25); border-radius: 6px; }
 .snav::-webkit-scrollbar-track { background: transparent; }
 .side { overflow: hidden; }
+
+/* ---------- واجهة الامتحان ---------- */
+.ex-bg { min-height: 100dvh; }
+.ex { max-width: 860px; margin: 0 auto; padding: 0 16px 120px; }
+.ex-top { position: sticky; top: 0; z-index: 20; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 4px; padding-top: calc(12px + env(safe-area-inset-top)); background: rgba(243,246,248,.92); backdrop-filter: blur(8px); }
+.ex-title { display: flex; align-items: center; gap: 10px; min-width: 0; } .ex-title strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--navy); }
+.ex-meta { display: flex; align-items: center; gap: 12px; flex: none; }
+.ex-save { font-size: .82rem; color: var(--muted); } .ex-save.fail { color: var(--bad); }
+.ex-timer { font: 800 1.15rem ui-monospace, monospace; background: var(--navy); color: #fff; padding: 4px 14px; border-radius: 999px; direction: ltr; }
+.ex-timer.low { background: var(--bad); animation: pulse 1s infinite; }
+@keyframes pulse { 50% { opacity: .7; } }
+.ex-bar { height: 8px; background: #DCE3EA; border-radius: 99px; overflow: hidden; margin-bottom: 18px; } .ex-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--teal), var(--amber)); transition: width .3s; }
+.qcard { background: #fff; border: 1px solid var(--line); border-radius: 20px; padding: 24px; box-shadow: var(--shadow); animation: rise .3s both; }
+.q-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.q-no { font-weight: 800; color: var(--teal); background: var(--mint); border-radius: 999px; padding: 2px 12px; font-size: .9rem; }
+.q-text { font-size: 1.3rem; font-weight: 700; line-height: 1.9; color: var(--navy); margin: 8px 0 16px; white-space: pre-line; }
+.q-img { max-width: 100%; max-height: 380px; display: block; margin: 0 auto 14px; border-radius: 12px; border: 1px solid var(--line); background: #fff; }
+.opts { display: grid; gap: 10px; }
+.opt { display: flex; align-items: center; gap: 12px; text-align: start; width: 100%; background: #fff; color: var(--ink); border: 2px solid var(--line); box-shadow: none; padding: 14px 16px; font-weight: 600; font-size: 1.05rem; min-height: 56px; line-height: 1.7; }
+.opt:hover:not(:disabled) { background: var(--bg); box-shadow: none; transform: none; border-color: var(--teal); }
+.opt.sel { background: var(--lav); border-color: var(--teal); color: var(--navy); }
+.mark { flex: none; width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--soft); display: grid; place-items: center; color: #fff; } .mark.sq { border-radius: 7px; }
+.opt.sel .mark { background: var(--teal); border-color: var(--teal); }
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: center; margin: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; font-weight: 600; }
+.ord { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+button.sm { min-height: 40px; padding: 4px 12px; }
+.fb { margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: var(--bg); font-weight: 600; } .fb.ok { background: var(--mint); color: var(--teal-d); } .fb.bad { background: #FBE4DF; color: var(--bad); }
+.qnav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.qdot { width: 42px; height: 42px; min-height: 0; padding: 0; border-radius: 12px; background: #fff; color: var(--muted); border: 1.5px solid var(--line); box-shadow: none; }
+.qdot.done { background: var(--mint); color: var(--teal-d); border-color: var(--teal); } .qdot.cur { background: var(--navy); color: #fff; border-color: var(--navy); }
+.qdot:hover { box-shadow: none; transform: none; }
+.ex-foot { position: fixed; inset-inline: 0; bottom: 0; z-index: 20; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 16px; padding-bottom: calc(12px + env(safe-area-inset-bottom)); background: rgba(255,255,255,.96); border-top: 1px solid var(--line); }
+.ex-foot button { min-width: 110px; }
+.ex-submit { text-align: center; margin-top: 16px; }
+@media (max-width: 640px) { .qcard { padding: 16px; } .q-text { font-size: 1.15rem; } .ex-count { display: none; } .ex-foot button { flex: 1; } .pair { grid-template-columns: 1fr; } }
+/* النتيجة */
+.score-ring { width: 150px; height: 150px; border-radius: 50%; display: grid; place-items: center; margin: 0 auto 10px; background: conic-gradient(var(--teal) calc(var(--p) * 1%), var(--lav) 0); }
+.score-ring > div { width: 118px; height: 118px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-size: 2rem; font-weight: 800; color: var(--navy); }
+.rv { border: 1px solid var(--line); border-radius: 16px; padding: 16px; background: #fff; margin-top: 12px; }
+.rv.right { border-color: var(--teal); background: #F4FBF9; } .rv.wrong { border-color: #E3B3AA; background: #FFF8F6; }
+.rv pre { margin: 4px 0; white-space: pre-wrap; font: inherit; }
