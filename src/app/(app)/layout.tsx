@@ -8,6 +8,8 @@ const NAV = [
   { href: "/dashboard", label: "الرئيسية", roles: ["admin", "teacher", "student"] },
   { href: "/classes", label: "الصفوف", roles: ["admin", "teacher"] },
   { href: "/students", label: "الطلاب", roles: ["admin", "teacher"] },
+  { href: "/exams", label: "الامتحانات", roles: ["admin", "teacher"] },
+  { href: "/import", label: "استيراد", roles: ["admin", "teacher"] },
   { href: "/subjects", label: "المواد والدروس", roles: ["admin", "teacher"] },
   { href: "/teachers", label: "المعلمون", roles: ["admin"] },
 ];

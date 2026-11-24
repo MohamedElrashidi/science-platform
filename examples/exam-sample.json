@@ -1,0 +1,20 @@
+{
+  "title": "اختبار تجريبي: النظم البيئية",
+  "kind": "quiz",
+  "subject": "العلوم",
+  "lesson": "العلاقات في النظم البيئية",
+  "grade_level": "5",
+  "duration_minutes": 20,
+  "max_attempts": 2,
+  "show_answers": true,
+  "questions": [
+    { "type": "mcq", "prompt": "ما الكائن الذي ينتج غذاءه بنفسه؟", "options": ["الأسد", "النبات", "الفطر", "الأرنب"], "correct": [1], "explanation": "النبات يصنع غذاءه بالبناء الضوئي." },
+    { "type": "tf", "prompt": "الأسد من آكلات النباتات.", "correct": false },
+    { "type": "fill", "prompt": "تحصل النباتات على الطاقة من ____", "blanks": [["الشمس", "ضوء الشمس"]] },
+    { "type": "short", "prompt": "ما اسم الكائنات التي تحلل الأحياء الميتة؟", "accepted": ["المحللات"] },
+    { "type": "matching", "prompt": "صل الكائن بدوره", "pairs": [{"left": "النبات", "right": "منتج"}, {"left": "الأرنب", "right": "مستهلك"}, {"left": "الفطر", "right": "محلل"}] },
+    { "type": "dragdrop", "prompt": "صنّف الكائنات", "targets": ["آكل نبات", "آكل لحم"], "items": [{"text": "الأرنب", "target": "آكل نبات"}, {"text": "الأسد", "target": "آكل لحم"}] },
+    { "type": "ordering", "prompt": "رتب السلسلة الغذائية", "items": ["النبات", "الجندب", "الضفدع", "الثعبان"] },
+    { "type": "essay", "prompt": "اشرح أهمية المحللات في النظام البيئي.", "marks": 3 }
+  ]
+}
