@@ -58,7 +58,6 @@ function LoginForm() {
                  onChange={(e) => setB(e.target.value)} dir="ltr" required
                  autoCapitalize={mode !== "teacher" ? "characters" : "none"} autoComplete="current-password" />
           <p className="err" role="alert">{err}</p>
-          {mode === "parent" && <p className="muted" style={{ marginTop: 0 }}><a href="/register">{t("ولي أمر جديد؟ سجّل حسابك")}</a></p>}
           <button disabled={busy} style={{ width: "100%" }}>{busy ? t("جارٍ الدخول…") : t("دخول")}</button>
         </form>
       </div>

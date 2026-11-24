@@ -43,10 +43,10 @@ export default function ParentsPage() {
     <>
       <div className="card">
         <h1>أولياء الأمور</h1>
-        <p className="muted">ولي الأمر يرى نتائج أبنائه ومستواهم وترتيبهم ونقاط القوة والضعف فقط، ولا يستطيع تعديل أي شيء. يدخل من صفحة الدخول (تبويب «طالب / ولي أمر») باسم المستخدم والكود.</p>
+        <p className="muted">ولي الأمر يرى نتائج أبنائه ومستواهم وترتيبهم ونقاط القوة والضعف فقط، ولا يستطيع تعديل أي شيء. يدخل من صفحة الدخول (تبويب «ولي أمر») باسم المستخدم والكود الذي تسلّمه له، ثم يختار الصف والاسم ويكتب كود ابنه لإضافته.</p>
         <form onSubmit={add}>
           <div className="row"><div><label>اسم ولي الأمر</label><input value={name} onChange={(e) => setName(e.target.value)} required /></div></div>
-          <label style={{ marginTop: 10 }}>اختر الأبناء ({sel.length})</label>
+          <label style={{ marginTop: 10 }}>اختر الأبناء — اختياري ({sel.length}). يستطيع ولي الأمر إضافة ابنه بنفسه بعد الدخول بكود ابنه</label>
           <input placeholder="بحث باسم الطالب…" value={q} onChange={(e) => setQ(e.target.value)} />
           <div style={{ maxHeight: 220, overflow: "auto", border: "1px solid var(--line)", borderRadius: 10, padding: 8, marginTop: 6 }}>
             {shown.map((s) => (

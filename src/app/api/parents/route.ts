@@ -31,7 +31,7 @@ export async function POST(req: Request) {
   const b = await req.json().catch(() => ({}));
   const full_name = String(b.full_name || "").trim();
   const ids: string[] = Array.isArray(b.student_ids) ? (Array.from(new Set(b.student_ids.map(String))) as string[]) : [];
-  if (full_name.length < 2 || !ids.length) return NextResponse.json({ error: "اكتب الاسم واختر ابنًا واحدًا على الأقل" }, { status: 400 });
+  if (full_name.length < 2) return NextResponse.json({ error: "اكتب اسم ولي الأمر" }, { status: 400 });
   const sb = await createClient();   // RLS: الطلاب المتاحون لهذا المعلم فقط
   const { data: ok } = await sb.from("profiles").select("id").eq("role", "student").in("id", ids);
   if ((ok || []).length !== ids.length) return NextResponse.json({ error: "بعض الطلاب غير متاحين لك" }, { status: 403 });
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
   if (!userId) return NextResponse.json({ error: "تعذر إنشاء الحساب" }, { status: 500 });
   const { error: pErr } = await admin.from("profiles").insert({ id: userId, role: "parent", full_name, username, created_by: g.me.id });
   if (pErr) { await admin.auth.admin.deleteUser(userId); return NextResponse.json({ error: "تعذر حفظ الحساب. هل شغّلت ملف 0006 في Supabase؟" }, { status: 500 }); }
-  const { error: lErr } = await admin.from("parent_students").insert(ids.map((s) => ({ parent_id: userId, student_id: s })));
+  const { error: lErr } = ids.length ? await admin.from("parent_students").insert(ids.map((s) => ({ parent_id: userId, student_id: s }))) : { error: null };
   if (lErr) { await admin.auth.admin.deleteUser(userId); return NextResponse.json({ error: "تعذر ربط الأبناء" }, { status: 500 }); }
   await saveCode(userId, code);
   return NextResponse.json({ id: userId, username, access_code: code }, { status: 201 });
