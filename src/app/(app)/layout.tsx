@@ -13,8 +13,8 @@ const STAFF: NavItem[] = [
   { href: "/subjects", label: "المواد والدروس", icon: "book" },
   { href: "/worksheets", label: "أوراق العمل", icon: "file", soon: true },
   { href: "/activities", label: "الأنشطة التفاعلية", icon: "spark", soon: true },
-  { href: "/bank", label: "بنك الأسئلة", icon: "bank", soon: true },
-  { href: "/reports", label: "التقارير والتحليلات", icon: "chart", soon: true },
+  { href: "/bank", label: "بنك الأسئلة", icon: "bank" },
+  { href: "/reports", label: "التقارير والتحليلات", icon: "chart" },
 ];
 const ADMIN_EXTRA: NavItem[] = [{ href: "/teachers", label: "المعلمون", icon: "shield" }];
 const SETTINGS: NavItem = { href: "/settings", label: "الإعدادات", icon: "settings", soon: true };
