@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { randomInt } from "crypto";
+import { makeCode, saveCode } from "@/lib/codes";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { currentProfile, studentEmail, USERNAME_RE } from "@/lib/auth";
 
-const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // بلا حروف متشابهة (0/O, 1/I)
-const makeCode = () => Array.from({ length: 8 }, () => ALPHABET[randomInt(ALPHABET.length)]).join("");
 
 export async function GET() {
   const me = await currentProfile();
@@ -63,5 +62,6 @@ export async function POST(req: Request) {
     await admin.auth.admin.deleteUser(userId);
     return NextResponse.json({ error: "تعذر حفظ بيانات الطالب" }, { status: 500 });
   }
+  await saveCode(userId, code);
   return NextResponse.json({ id: userId, username, access_code: code }, { status: 201 });
 }

@@ -39,7 +39,7 @@ export default function StudentsPage() {
     load();
   }
   async function reset(s: Stu) {
-    if (!confirm(`إنشاء كود جديد للطالب ${s.full_name}؟ سيتوقف الكود القديم.`)) return;
+    if (!confirm(`تغيير كود الطالب ${s.full_name}؟ سيتوقف الكود القديم ويجب إعطاؤه البطاقة الجديدة.`)) return;
     try {
       const r = await api<Card>("/api/students/" + s.id + "/reset-code", "POST");
       setCards((c) => [r, ...c]);
@@ -111,20 +111,32 @@ export default function StudentsPage() {
     load();
   }
 
-  // ---------- أكواد جديدة لكل طلاب صف ----------
+  // ---------- بطاقات دخول الصف (نفس الأكواد المحفوظة) ----------
   const [bulkClass, setBulkClass] = useState("");
-  async function bulkReset() {
-    const list = students.filter((st) => String(st.class_id ?? "") === bulkClass && st.active);
-    if (!list.length) { setMsg("لا يوجد طلاب نشطون في هذا الصف."); return; }
-    if (!confirm(`إصدار أكواد جديدة لـ ${list.length} طالب؟ ستتوقف أكوادهم القديمة (إن وُجدت).`)) return;
-    setBusy(true); setMsg(""); const out: Card[] = []; const failed: string[] = [];
-    for (let i = 0; i < list.length; i++) {
-      setProg(`إصدار الأكواد ${i + 1} / ${list.length}`);
-      try { out.push(await api<Card>("/api/students/" + list[i].id + "/reset-code", "POST")); }
-      catch (x: any) { failed.push(`${list[i].full_name} (${x.message})`); }
-    }
-    setCards(out); setProg(""); setBusy(false);   // استبدال البطاقات الظاهرة بهذه الدفعة فقط
-    setMsg(`تم إصدار ${out.length} بطاقة. اضغط «طباعة البطاقات» الآن.` + (failed.length ? ` تعذر: ${failed.join(" | ")}` : ""));
+  async function classCards() {
+    setBusy(true); setMsg(""); setProg("جلب البطاقات…");
+    const failed: string[] = [];
+    try {
+      const r = await api<{ cards: Card[]; missing: { id: string; full_name: string }[] }>(`/api/students/codes?class_id=${bulkClass}`);
+      const out: Card[] = [...r.cards];
+      // طلاب بلا كود محفوظ (أُنشئوا قبل الحفظ): يُصدر لهم كود مرة واحدة ويُحفظ
+      for (let i = 0; i < r.missing.length; i++) {
+        setProg(`إصدار الأكواد الناقصة ${i + 1} / ${r.missing.length}`);
+        try { out.push(await api<Card>("/api/students/" + r.missing[i].id + "/reset-code", "POST")); }
+        catch (x: any) { failed.push(`${r.missing[i].full_name} (${x.message})`); }
+      }
+      out.sort((a, b) => a.full_name.localeCompare(b.full_name, "ar"));
+      setCards(out);
+      setMsg(`جاهز: ${out.length} بطاقة. اضغط «طباعة البطاقات».` + (failed.length ? ` تعذر: ${failed.join(" | ")}` : ""));
+    } catch (x: any) { setMsg(x.message); }
+    setProg(""); setBusy(false);
+  }
+  async function oneCard(s: Stu) {
+    try {
+      const r = await api<{ cards: Card[] }>(`/api/students/codes?student_id=${s.id}`);
+      const card = r.cards[0] ?? (await api<Card>("/api/students/" + s.id + "/reset-code", "POST"));   // بلا كود محفوظ: يُصدر مرة واحدة
+      setCards((c) => [card, ...c]);
+    } catch (x: any) { setMsg(x.message); }
   }
 
   return (
@@ -169,13 +181,13 @@ export default function StudentsPage() {
 
       <div className="card no-print" style={{ marginTop: 14 }}>
         <h2 style={{ marginTop: 0 }}>بطاقات دخول الصف</h2>
-        <p className="muted">يصدر كوداً جديداً لكل طالب نشط في الصف، ثم تطبع البطاقات دفعة واحدة. الأكواد لا تظهر إلا هنا مرة واحدة.</p>
+        <p className="muted">تعرض بطاقات الصف بنفس أكواد الطلاب المحفوظة، وتصدر كوداً فقط لمن لا كود له. يمكن إعادة طباعتها في أي وقت.</p>
         <div className="row">
           <div><select value={bulkClass} onChange={(e) => setBulkClass(e.target.value)} aria-label="الصف">
             <option value="">اختر الصف</option>
             {classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select></div>
-          <button disabled={busy || !bulkClass} onClick={bulkReset}>{busy && prog ? prog : "إصدار بطاقات الصف"}</button>
+          <button disabled={busy || !bulkClass} onClick={classCards}>{busy && prog ? prog : "عرض بطاقات الصف"}</button>
         </div>
       </div>
 
@@ -183,7 +195,7 @@ export default function StudentsPage() {
         <div className="card grid">
           <div className="no-print">
             <h2 style={{ marginTop: 0 }}>بطاقات الدخول</h2>
-            <p className="muted">الأكواد تظهر هنا مرة واحدة فقط ولا تُحفظ. اطبعها الآن وسلّمها للطلاب.</p>
+            <p className="muted">الأكواد محفوظة ويمكن إعادة طباعتها من «بطاقة» أو «بطاقات دخول الصف».</p>
             <button onClick={() => window.print()}>طباعة البطاقات</button>{" "}
             <button className="ghost" onClick={() => setCards([])}>إخفاء</button>
           </div>
@@ -211,7 +223,7 @@ export default function StudentsPage() {
                   <option value="">—</option>{classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select></td>
                 <td>{s.active ? "نشط" : "موقوف"}</td>
-                <td><button className="ghost" onClick={() => reset(s)}>كود جديد</button>{" "}
+                <td><button className="ghost" onClick={() => oneCard(s)}>بطاقة</button>{" "}<button className="ghost" onClick={() => reset(s)}>كود جديد</button>{" "}
                     <button className="ghost" onClick={() => toggle(s)}>{s.active ? "إيقاف" : "تفعيل"}</button></td>
               </tr>
             ))}
