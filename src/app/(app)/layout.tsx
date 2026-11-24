@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { authState } from "@/lib/auth";
 import { getPrefs } from "@/lib/prefs";
 import { tr } from "@/lib/i18n";
+import PhoneGate from "@/components/PhoneGate";
 import AppShell, { type NavItem } from "@/components/AppShell";
 
 export const dynamic = "force-dynamic";
@@ -45,6 +46,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   const me = s.profile;
+  if ((me.role === "student" || me.role === "parent") && !me.phone?.trim()) return <PhoneGate role={me.role} name={me.full_name} />;
   const items = me.role === "student" || me.role === "parent" ? STUDENT
     : [...STAFF, ...(me.role === "admin" ? ADMIN_EXTRA : []), SETTINGS];
   const { lang } = await getPrefs();

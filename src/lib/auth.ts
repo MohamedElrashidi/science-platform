@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export type Role = "admin" | "teacher" | "student" | "parent";
 export const isStaff = (r: Role) => r === "admin" || r === "teacher";
-export type Profile = { id: string; role: Role; full_name: string; username: string; class_id: number | null };
+export type Profile = { id: string; role: Role; full_name: string; username: string; class_id: number | null; phone?: string | null };
 
 export const STUDENT_DOMAIN = process.env.STUDENT_EMAIL_DOMAIN || "students.example.com";
 
@@ -30,7 +30,7 @@ export async function authState(): Promise<AuthState> {
 
   const { data, error } = await createAdminClient()
     .from("profiles")
-    .select("id, role, full_name, username, class_id, active")
+    .select("id, role, full_name, username, class_id, phone, active")
     .eq("id", user.id)
     .maybeSingle();
   if (error) {
