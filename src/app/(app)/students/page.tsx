@@ -226,7 +226,7 @@ export default function StudentsPage() {
                 </select></td>
                 <td dir="ltr"><a href="#" onClick={(e) => { e.preventDefault(); const v = prompt("رقم واتساب ولي الأمر", s.phone || ""); if (v !== null) api("/api/students/" + s.id, "PATCH", { phone: v }).then(load).catch((x) => setMsg(x.message)); }}>{s.phone || "إضافة رقم"}</a></td>
                 <td>{s.active ? "نشط" : "موقوف"}</td>
-                <td><button className="ghost" onClick={() => oneCard(s)}>بطاقة</button>{" "}<button className="ghost" onClick={() => reset(s)}>كود جديد</button>{" "}
+                <td><a className="btn ghost" href={"/students/" + s.id} style={{ textDecoration: "none", background: "var(--card)", color: "var(--teal)", border: "1.5px solid var(--line)", boxShadow: "none" }}>تقدّم</a>{" "}<button className="ghost" onClick={() => oneCard(s)}>بطاقة</button>{" "}<button className="ghost" onClick={() => reset(s)}>كود جديد</button>{" "}
                     <button className="ghost" onClick={() => toggle(s)}>{s.active ? "إيقاف" : "تفعيل"}</button></td>
               </tr>
             ))}

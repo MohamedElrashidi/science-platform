@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Profile } from "@/lib/auth";
 import { parentChildren, childReport } from "@/lib/parent";
 import AddChild from "./AddChild";
+import ProgressChart from "@/components/ProgressChart";
 import { ExamBars, Empty } from "@/components/Charts";
 
 const band = (p: number): [string, string] => (p >= 85 ? ["ممتاز", "g"] : p >= 65 ? ["جيد", ""] : p >= 50 ? ["مقبول", "a"] : ["يحتاج دعمًا", "a"]);
@@ -58,6 +59,11 @@ export default async function ParentHome({ me, child }: { me: Profile; child?: s
           <div className="stat" style={{ ["--tint" as any]: "#FCEBD0" }}><div className="v">{pct === null ? "—" : band(pct)[0]}</div><div className="l">المستوى</div></div>
           <div className="stat"><div className="v">{r.exams.length}</div><div className="l">امتحانات مصححة{r.pending ? ` (+${r.pending} بانتظار التصحيح)` : ""}</div></div>
         </div>
+      </div>
+
+      <div className="card" style={{ marginTop: 16 }}>
+        <div className="sec"><h2>تقدّم {kid.full_name} عبر الامتحانات</h2></div>
+        <ProgressChart data={r.exams.slice(-10).map((e) => ({ label: e.title, value: e.percent }))} />
       </div>
 
       <div className="card" style={{ marginTop: 16 }}>

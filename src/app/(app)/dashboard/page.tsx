@@ -5,6 +5,7 @@ import Icon from "@/components/Icon";
 import AtomArt from "@/components/AtomArt";
 import { getPrefs } from "@/lib/prefs";
 import { tr } from "@/lib/i18n";
+import ProgressChart from "@/components/ProgressChart";
 import ParentHome from "./ParentHome";
 import { WeeklyBars, ExamBars, Empty } from "@/components/Charts";
 
@@ -164,6 +165,9 @@ async function StudentHome({ name, id, lang }: { name: string; id: string; lang:
   const done = attempts.filter((a) => a.status !== "in_progress");
   const scored = done.filter((a) => a.status === "graded" && a.percent !== null && showScore.get(a.exam_id) === true).map((a) => Number(a.percent));
   const mean = avg(scored);
+  const progress = done.filter((a) => a.status === "graded" && a.percent !== null && showScore.get(a.exam_id) === true)
+    .sort((x, y) => new Date(x.submitted_at || 0).getTime() - new Date(y.submitted_at || 0).getTime()).slice(-10)
+    .map((a) => ({ label: exams.find((e) => e.id === a.exam_id)?.title ?? "امتحان", value: Number(a.percent) }));
   const used = new Map<number, number>();
   attempts.forEach((a) => used.set(a.exam_id, (used.get(a.exam_id) || 0) + 1));
   const inProg = new Set(attempts.filter((a) => a.status === "in_progress").map((a) => a.exam_id));
@@ -212,6 +216,13 @@ async function StudentHome({ name, id, lang }: { name: string; id: string; lang:
               <div className="tx">{r.title}<small>{r.kind === "video" ? "فيديو شرح" : r.kind === "activity" ? "نشاط تفاعلي" : "ورقة عمل"}</small></div>
               <span className="badge g">{T("فتح")}</span></Link>
           ))}</div>
+        </section>
+      )}
+
+      {progress.length > 0 && (
+        <section className="card" style={{ marginTop: 16 }}>
+          <div className="sec"><h2>{T("تقدّمي عبر الامتحانات")}</h2></div>
+          <ProgressChart data={progress} />
         </section>
       )}
 
