@@ -71,6 +71,7 @@ export default function ExamsPage() {
                 {detail.exam.status === "published"
                   ? <button className="ghost" onClick={() => act(e.id, { action: "unpublish" })}>إلغاء النشر</button>
                   : <button onClick={() => act(e.id, { action: "publish" })}>نشر الامتحان</button>}
+                <a className="btn ghost" style={{ textDecoration: "none", display: "inline-grid", placeItems: "center", background: "#fff", color: "var(--teal)", border: "1.5px solid var(--line)", boxShadow: "none" }} href={`/exams/${e.id}/results`}>النتائج</a>
                 <button className="ghost" onClick={() => del(e.id)}>حذف</button>
               </div>
 
