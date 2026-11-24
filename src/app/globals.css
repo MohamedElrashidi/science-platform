@@ -191,3 +191,65 @@ tbody tr:hover td { background: rgba(221,243,239,.35); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 .skeleton { background: linear-gradient(90deg, #E9EEF2, #F5F8FA, #E9EEF2); background-size: 200% 100%; animation: sk 1.4s infinite; border-radius: 12px; min-height: 18px; }
 @keyframes sk { to { background-position: -200% 0; } }
+
+/* ---------- تحسين راقٍ (Refinement) ---------- */
+:root { --ease: cubic-bezier(.2,.7,.2,1); --shadow-lg: 0 2px 4px rgba(20,43,69,.05), 0 18px 40px rgba(20,43,69,.10); }
+body { font-feature-settings: "tnum"; }
+h1 { font-size: 1.75rem; font-weight: 800; letter-spacing: -.01em; }
+.wrap > h1:first-child, .wrap > .card:first-child > h1:first-child {
+  position: relative; padding-inline-start: 16px;
+}
+.wrap > h1:first-child::before, .wrap > .card:first-child > h1:first-child::before {
+  content: ""; position: absolute; inset-inline-start: 0; top: .3em; bottom: .3em; width: 5px; border-radius: 4px;
+  background: linear-gradient(180deg, var(--teal), var(--amber));
+}
+.card { transition: box-shadow .25s var(--ease), transform .25s var(--ease), border-color .25s; border-color: rgba(20,43,69,.08); }
+.panels > .card:hover, .stat:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+.stat { transition: box-shadow .25s var(--ease), transform .25s var(--ease); }
+.stat .v { font-size: 2.2rem; letter-spacing: -.02em; }
+.stat .l { font-size: 1rem; }
+.sec { padding-bottom: 10px; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+.sec h2 { font-size: 1.2rem; }
+.hero { padding: 34px 32px; }
+.hero::before { /* خطوط جزيئية رفيعة */
+  content: ""; position: absolute; inset: 0; opacity: .5; pointer-events: none;
+  background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,.18) 1px, transparent 1.5px); background-size: 22px 22px;
+  mask-image: linear-gradient(90deg, transparent, #000 70%); -webkit-mask-image: linear-gradient(90deg, transparent, #000 70%);
+}
+.hero .actions a { transition: transform .15s var(--ease), background .15s, box-shadow .15s; }
+.hero .actions a:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(0,0,0,.25); }
+.hero .a2:hover { background: rgba(255,255,255,.24); }
+button, .btn { transition: background .15s, transform .12s var(--ease), box-shadow .15s; }
+button:hover:not(:disabled) { box-shadow: 0 8px 18px rgba(23,107,112,.32); transform: translateY(-1px); }
+button.ghost:hover:not(:disabled) { box-shadow: none; transform: none; }
+.sitem { transition: background .15s, color .15s; position: relative; }
+.sitem.on::after { content: ""; position: absolute; inset-inline-end: -14px; top: 10px; bottom: 10px; width: 4px; border-radius: 4px; background: var(--amber); }
+.tbl { border: 1px solid var(--line); border-radius: 14px; background: #fff; }
+.tbl table { border-collapse: separate; border-spacing: 0; }
+.tbl th:first-child { border-start-start-radius: 13px; } .tbl th:last-child { border-start-end-radius: 13px; }
+tbody tr:last-child td { border-bottom: 0; }
+input, select, textarea { transition: border-color .15s, box-shadow .15s; }
+input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 4px rgba(23,107,112,.14); outline: none; }
+.hbar i { transition: width .8s var(--ease); }
+.badge { font-size: .82rem; padding: 3px 12px; }
+.alert { border: 1px solid #F0D3A4; }
+.feed .it { transition: background .15s; border-radius: 10px; padding-inline: 8px; }
+.feed .it:hover { background: var(--bg); }
+.muted { font-size: .95rem; }
+/* ظهور ناعم عند فتح الصفحة */
+.wrap > * { animation: rise .45s var(--ease) both; }
+.wrap > *:nth-child(2) { animation-delay: .05s; } .wrap > *:nth-child(3) { animation-delay: .1s; } .wrap > *:nth-child(n+4) { animation-delay: .15s; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+/* نافذة تأكيد */
+.modal-bg { position: fixed; inset: 0; background: rgba(15,34,54,.55); display: grid; place-items: center; z-index: 60; padding: 16px; animation: fade .2s; }
+.modal { background: #fff; border-radius: 20px; padding: 24px; max-width: 440px; width: 100%; box-shadow: var(--shadow-lg); animation: rise .25s var(--ease); }
+@keyframes fade { from { opacity: 0; } }
+/* جوال: أهداف لمس كبيرة وبطاقات أنيقة */
+@media (max-width: 640px) {
+  .hero { padding: 24px 20px; border-radius: 18px; } .hero h1 { font-size: 1.45rem; }
+  .hero .actions a { flex: 1 1 100%; justify-content: center; }
+  .stats { grid-template-columns: repeat(2, 1fr); gap: 10px; } .stat { padding: 14px; } .stat .v { font-size: 1.8rem; }
+  .card { padding: 16px; border-radius: 14px; } h1 { font-size: 1.4rem; }
+  .row > * { flex: 1 1 100%; } .row > button { flex: 1 1 100%; }
+  th, td { padding: 10px 8px; font-size: .92rem; }
+}
