@@ -11,7 +11,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const { data: r } = await sb.from("resources").select("id").eq("id", id).maybeSingle();
   if (!r) return NextResponse.json({ error: "غير موجود" }, { status: 404 });
   if (b.action === "publish" || b.action === "unpublish") await sb.from("resources").update({ status: b.action === "publish" ? "published" : "draft" }).eq("id", id);
-  else if (b.action === "assign") {
+  else if (b.action === "set_attempts") {
+    const n = Math.min(50, Math.max(1, Math.floor(Number(b.max_attempts) || 1)));
+    const { error } = await sb.from("resources").update({ max_attempts: n }).eq("id", id);
+    if (error) return NextResponse.json({ error: "تعذر الحفظ. هل شغّلت ملف 0008 في Supabase؟" }, { status: 500 });
+  } else if (b.action === "assign") {
     const cid = Number(b.class_id);
     const { data: c } = await sb.from("classes").select("id").eq("id", cid).maybeSingle();   // RLS: صفوفه فقط
     if (!c) return NextResponse.json({ error: "صف غير صالح" }, { status: 400 });

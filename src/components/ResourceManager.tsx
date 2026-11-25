@@ -65,6 +65,8 @@ export default function ResourceManager({ kind, title, hint }: { kind: "workshee
               <div className="row" style={{ marginTop: 6, alignItems: "center" }}>
                 <select value={cls[r.id] || ""} onChange={(e) => setCls({ ...cls, [r.id]: e.target.value })} aria-label="الصف"><option value="">إسناد إلى صف…</option>{classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>
                 <button className="ghost" disabled={!cls[r.id]} onClick={() => act(r.id, { action: "assign", class_id: Number(cls[r.id]) })}>إسناد</button>
+                {(r.source === "html" || r.kind === "worksheet" || r.kind === "activity") && <><label style={{ margin: 0 }}>عدد محاولات الطالب</label>
+                  <select value={r.max_attempts ?? 1} onChange={(e) => act(r.id, { action: "set_attempts", max_attempts: Number(e.target.value) })} aria-label="عدد المحاولات">{[1, 2, 3, 4, 5, 10, 20, 50].map((n) => <option key={n} value={n}>{n === 1 ? "محاولة واحدة" : n + " محاولات"}</option>)}</select></>}
               </div>
               {r.assignments.map((a: any) => <span key={a.id} className="badge" style={{ marginInlineEnd: 6 }}>{a.name} <a href="#" onClick={(e) => { e.preventDefault(); act(r.id, { action: "unassign", assignment_id: a.id }); }}>×</a></span>)}
               {r.status === "published" && !r.assignments.length && <p className="muted">منشور لكن غير مسند لأي صف، فلن يراه الطلاب.</p>}

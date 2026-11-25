@@ -10,7 +10,7 @@ export default function Viewer({ r, student }: { r: any; student: boolean }) {
       const d = e.data;
       if (d && d.type === "score" && Number.isFinite(d.score) && Number.isFinite(d.max))
         fetch(`/api/resources/${r.id}/result`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ score: d.score, max: d.max }) })
-          .then((x) => setMsg(x.ok ? "تم حفظ نتيجتك" : "تعذر حفظ النتيجة"));
+          .then(async (x) => setMsg(x.ok ? "تم حفظ نتيجتك" : x.status === 409 ? "استنفدت محاولاتك — اطلب من معلمك محاولة جديدة" : "تعذر حفظ النتيجة"));
     };
     window.addEventListener("message", h); return () => window.removeEventListener("message", h);
   }, [r.id, student]);

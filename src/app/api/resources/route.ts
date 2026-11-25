@@ -11,7 +11,7 @@ export async function GET(req: Request) {
   if ("err" in g) return g.err;
   const kind = new URL(req.url).searchParams.get("kind");
   const sb = await createClient();
-  let q = sb.from("resources").select("id, title, kind, source, filename, external_url, size, status, grade_level, created_at, subjects(name)").order("id", { ascending: false });
+  let q = sb.from("resources").select("*, subjects(name)").order("id", { ascending: false });
   if (kind) q = q.eq("kind", kind);
   const { data } = await q;
   const ids = (data || []).map((r) => r.id);

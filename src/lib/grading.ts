@@ -6,7 +6,7 @@ const DIAC = /[ؐ-ًؚ-ٰٟۖ-ۭـ]/g;
 export function normalize(text: unknown): string {
   if (text === null || text === undefined) return "";
   let t = String(text).trim().toLowerCase().replace(DIAC, "");
-  t = t.replace(/[أإآٱ]/g, "ا").replace(/ى/g, "ي").replace(/ؤ/g, "و").replace(/ئ/g, "ي");
+  t = t.replace(/[أإآٱ]/g, "ا").replace(/ى/g, "ي").replace(/ة/g, "ه").replace(/ؤ/g, "و").replace(/ئ/g, "ي");
   t = t.replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)));
   t = t.replace(/\s+/g, " ").trim();
   return t.replace(/^[\s.،؛؟!]+|[\s.،؛؟!]+$/g, "");
