@@ -10,6 +10,8 @@ export default function Bank() {
   const [rows, setRows] = useState<any[] | null>(null);
   const [subjects, setSubjects] = useState<any[]>([]);
   const [f, setF] = useState({ q: "", status: "", qtype: "", subject_id: "" });
+  const [scope, setScope] = useState("");
+  const [classes, setClasses] = useState<{ id: number; name: string }[]>([]);
   const [sel, setSel] = useState<number[]>([]);
   const [open, setOpen] = useState<number | null>(null);
   const [msg, setMsg] = useState("");
@@ -18,7 +20,7 @@ export default function Bank() {
     const p = new URLSearchParams(Object.entries(f).filter(([, v]) => v) as [string, string][]);
     api<any[]>("/api/questions?" + p).then((r) => { setRows(r); setSel([]); }).catch((e) => setMsg(e.message));
   };
-  useEffect(() => { api<any>("/api/subjects").then((r) => setSubjects(r.subjects || [])).catch(() => {}); }, []);
+  useEffect(() => { api<any>("/api/classes").then(setClasses).catch(() => {}); api<any>("/api/subjects").then((r) => setSubjects(r.subjects || [])).catch(() => {}); }, []);
   useEffect(() => { const t = setTimeout(load, 250); return () => clearTimeout(t); }, [f]);
 
   async function bulk(status: string) {
@@ -28,15 +30,17 @@ export default function Bank() {
     if (!confirm("حذف هذا السؤال نهائيًا؟")) return;
     try { await api("/api/questions/" + id, "DELETE"); load(); } catch (x: any) { setMsg(x.message); }
   }
+  const shown = (rows || []).filter((r) => !scope || (scope === "general" ? !r.data?.scope_class : String(r.data?.scope_class) === scope));
   const pending = (rows || []).filter((r) => r.status === "pending_review");
 
   return (
     <div className="card">
-      <div className="sec"><h1 style={{ margin: 0 }}>بنك الأسئلة</h1><span className="badge">{rows?.length ?? "…"} سؤال</span></div>
+      <div className="sec"><h1 style={{ margin: 0 }}>بنك الأسئلة</h1><a className="btn" href="/exams/new" style={{ textDecoration: "none" }}>+ إنشاء أسئلة</a><span className="badge">{rows?.length ?? "…"} سؤال</span></div>
       <div className="row">
         <div><label>بحث</label><input value={f.q} onChange={(e) => setF({ ...f, q: e.target.value })} placeholder="كلمة من نص السؤال" /></div>
         <div><label>المادة</label><select value={f.subject_id} onChange={(e) => setF({ ...f, subject_id: e.target.value })}><option value="">الكل</option>{subjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
         <div><label>النوع</label><select value={f.qtype} onChange={(e) => setF({ ...f, qtype: e.target.value })}><option value="">الكل</option>{Object.entries(TYPE_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></div>
+        <div><label>النطاق</label><select value={scope} onChange={(e) => setScope(e.target.value)}><option value="">الكل</option><option value="general">عام</option>{classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
         <div><label>الحالة</label><select value={f.status} onChange={(e) => setF({ ...f, status: e.target.value })}><option value="">الكل</option><option value="approved">معتمد</option><option value="pending_review">بانتظار الاعتماد</option></select></div>
       </div>
       <p className="err">{msg}</p>
@@ -46,13 +50,13 @@ export default function Bank() {
         {sel.length === 0 && pending.length > 0 && <button onClick={() => { setSel(pending.map((r) => r.id)); }}>تحديد الأسئلة غير المعتمدة ({pending.length})</button>}
       </div>
       {rows === null ? <div className="skeleton" style={{ height: 100 }} /> : !rows.length ? <Empty text="لا توجد أسئلة مطابقة. استورد امتحانًا من صفحة الاستيراد." /> :
-        rows.map((r) => (
+        shown.map((r) => (
           <div key={r.id} className="rv" style={{ padding: 12 }}>
             <div className="row" style={{ alignItems: "center", flexWrap: "nowrap" }}>
               <input type="checkbox" style={{ width: 22, minHeight: 22, flex: "0 0 22px" }} checked={sel.includes(r.id)} onChange={() => setSel((s) => s.includes(r.id) ? s.filter((x) => x !== r.id) : [...s, r.id])} aria-label="تحديد" />
               <div style={{ flex: 1, cursor: "pointer" }} onClick={() => setOpen(open === r.id ? null : r.id)}>
                 <div style={{ fontWeight: 700, whiteSpace: "pre-line" }}>{r.prompt.slice(0, 160)}{r.prompt.length > 160 ? "…" : ""}</div>
-                <div className="muted" style={{ fontSize: ".85rem" }}>{TYPE_LABELS[r.qtype]} · {r.subjects?.name ?? "—"}{r.lessons?.title ? ` · ${r.lessons.title}` : ""} · {r.marks} درجة{r.media_url ? " · بصورة" : ""}</div>
+                <div className="muted" style={{ fontSize: ".85rem" }}>{TYPE_LABELS[r.qtype]} · {r.subjects?.name ?? "—"}{r.lessons?.title ? ` · ${r.lessons.title}` : ""} · {r.marks} درجة{r.media_url ? " · بصورة" : ""} · {r.data?.scope_class ? "لصف: " + (classes.find((c) => c.id === r.data.scope_class)?.name ?? "—") : "عام"}</div>
               </div>
               <span className={"badge " + (r.status === "approved" ? "g" : "a")}>{ST[r.status]}</span>
             </div>

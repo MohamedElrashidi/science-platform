@@ -1,4 +1,5 @@
 "use client";
+import { styleCss } from "@/lib/qtypes";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { api } from "@/lib/client";
@@ -85,8 +86,10 @@ export default function Runner({ examId }: { examId: number }) {
       <main className="ex-main">
         <section className="qcard" key={q.id}>
           <div className="q-head"><span className="q-no">السؤال {i + 1} من {qs.length}</span><span className="badge">{q.marks} {q.marks === 1 ? "درجة" : "درجات"}</span></div>
+          {q.section && <h2 className="q-section">{q.section}</h2>}
+          {q.passage && <div className="passage">{q.passage}</div>}
           {q.media_url && <img className="q-img" src={q.media_url} alt={q.media_alt || "صورة السؤال"} />}
-          <p className="q-text">{q.prompt}</p>
+          <p className="q-text" style={styleCss(q.style)}>{q.prompt}</p>
           {q.instructions && <p className="muted">{q.instructions}</p>}
           <Answer q={q} v={ans[q.id]} set={(v) => set(q.id, v)} />
           {p.exam.practice_mode && (

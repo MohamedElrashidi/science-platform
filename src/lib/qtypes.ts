@@ -23,6 +23,35 @@ export type Converted = {
   media_kind: string | null; media_url: string | null; lesson: string | null;
 };
 
+// خطوط آمنة تعمل على أغلب الأجهزة (Cairo هو خط المنصة)
+export const FONTS: Record<string, { label: string; css: string }> = {
+  cairo: { label: "Cairo (الافتراضي)", css: "var(--font-cairo), Cairo, Tahoma, sans-serif" },
+  tahoma: { label: "Tahoma", css: "Tahoma, Arial, sans-serif" },
+  arial: { label: "Arial", css: "Arial, Helvetica, sans-serif" },
+  times: { label: "Times New Roman", css: "'Times New Roman', Times, serif" },
+  traditional: { label: "Traditional Arabic (نسخ)", css: "'Traditional Arabic', 'Times New Roman', serif" },
+  courier: { label: "Courier New", css: "'Courier New', monospace" },
+};
+export type QStyle = { font?: string; size?: number; color?: string; bold?: boolean };
+export function cleanStyle(s: any): QStyle | null {
+  if (!s || typeof s !== "object") return null;
+  const o: QStyle = {};
+  if (typeof s.font === "string" && FONTS[s.font] && s.font !== "cairo") o.font = s.font;
+  const n = Number(s.size); if (Number.isFinite(n) && n >= 14 && n <= 40 && n !== 21) o.size = Math.round(n);
+  if (typeof s.color === "string" && /^#[0-9a-f]{6}$/i.test(s.color) && s.color.toLowerCase() !== "#142b45") o.color = s.color;
+  if (s.bold === false) o.bold = false;
+  return Object.keys(o).length ? o : null;
+}
+export function styleCss(s: QStyle | null | undefined) {
+  const css: Record<string, string | number> = {};
+  if (!s) return css;
+  if (s.font && FONTS[s.font]) css.fontFamily = FONTS[s.font].css;
+  if (s.size) css.fontSize = s.size;
+  if (s.color) css.color = s.color;
+  if (s.bold === false) css.fontWeight = 400;
+  return css;
+}
+
 const str = (v: unknown) => (v === null || v === undefined ? "" : String(v)).trim();
 const strList = (v: unknown): string[] => (Array.isArray(v) ? v.map(str).filter(Boolean) : []);
 const optText = (o: any) => (o && typeof o === "object" ? str(o.text ?? o.label) : str(o));
@@ -113,6 +142,10 @@ export function convertQuestion(q0: any, n: number): { ok: Converted } | { error
   const img = str(q.image ?? q.media_url ?? m?.url ?? (m?.file ? `media:${m.file}` : ""));
   if (img && !/^(https?:\/\/|storage:|media:)/i.test(img)) return fail("رابط الصورة يجب أن يبدأ بـ http أو https");
   if (m?.alt) data = { ...data, media_alt: str(m.alt) };
+  const stl = cleanStyle(q.style); if (stl) data = { ...data, style: stl };
+  const passage = str(q.passage); if (passage) data = { ...data, passage: passage.slice(0, 5000) };
+  const sc = Number(q.scope_class); if (Number.isInteger(sc) && sc > 0) data = { ...data, scope_class: sc };
+  const section = str(q.section); if (section) data = { ...data, section: section.slice(0, 200) };
   const diff = ["easy", "medium", "hard"].includes(str(q.difficulty)) ? str(q.difficulty) : "medium";
   return { ok: {
     qtype, prompt, instructions: str(q.instructions) || null, data, marks,

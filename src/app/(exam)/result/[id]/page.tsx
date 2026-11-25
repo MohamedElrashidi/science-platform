@@ -1,3 +1,4 @@
+import { styleCss } from "@/lib/qtypes";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentProfile } from "@/lib/auth";
@@ -52,7 +53,7 @@ export default async function Result({ params }: { params: Promise<{ id: string 
           <div className="q-head"><span className="q-no">السؤال {k + 1}</span>
             <span className="badge">{r.needs_manual && r.marks_awarded === null ? "بانتظار التصحيح" : `${r.marks_awarded ?? 0} / ${r.max_marks}`}</span></div>
           {r.img && <img className="q-img" src={r.img} alt="" />}
-          <p style={{ fontWeight: 700, whiteSpace: "pre-line" }}>{r.questions.prompt}</p>
+          <p style={{ fontWeight: 700, whiteSpace: "pre-line", ...styleCss(r.questions.data?.style) }}>{r.questions.prompt}</p>
           <p className="muted">إجابتك:</p><pre>{r.mine}</pre>
           {!r.is_correct && r.key && <><p className="muted">الإجابة الصحيحة:</p><pre><b>{r.key}</b></pre></>}
           {r.questions.explanation && <p className="muted">{r.questions.explanation}</p>}
