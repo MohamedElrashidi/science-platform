@@ -10,7 +10,7 @@ export default function FromBank() {
   const [students, setStudents] = useState<Stu[]>([]);
   const [sel, setSel] = useState<number[]>([]);
   const [q, setQ] = useState(""), [scope, setScope] = useState(""), [qt, setQt] = useState("");
-  const [f, setF] = useState({ title: "", grade: "", duration: "", attempts: "1", show_answers: true, show_score: true, shuffle_questions: false, shuffle_options: true });
+  const [f, setF] = useState({ title: "", grade: "", duration: "", attempts: "1", show_answers: true, show_score: true, shuffle_questions: false, shuffle_options: true, single: false, release: "auto" });
   const [tg, setTg] = useState<Target>({ classIds: [], studentIds: [] });
   const [msg, setMsg] = useState(""), [busy, setBusy] = useState(false);
 
@@ -30,7 +30,7 @@ export default function FromBank() {
     setMsg(""); setBusy(true);
     try {
       await api("/api/exams/from-bank", "POST", {
-        title: f.title, grade_level: f.grade, duration_minutes: f.duration ? Number(f.duration) : null, max_attempts: Number(f.attempts) || 1,
+        title: f.title, grade_level: f.grade, duration_minutes: f.duration ? Number(f.duration) : null, max_attempts: f.single ? 1 : Number(f.attempts) || 1, release_mode: f.release,
         show_answers: f.show_answers, show_score: f.show_score, shuffle_questions: f.shuffle_questions, shuffle_options: f.shuffle_options,
         question_ids: sel, class_ids: tg.classIds, student_ids: tg.studentIds, publish,
       });
@@ -47,7 +47,9 @@ export default function FromBank() {
           <div style={{ flex: "3 1 260px" }}><label>عنوان الامتحان</label><input value={f.title} onChange={(e) => setF({ ...f, title: e.target.value })} /></div>
           <div><label>المرحلة</label><input value={f.grade} onChange={(e) => setF({ ...f, grade: e.target.value })} style={{ width: 80 }} /></div>
           <div><label>مدة الامتحان كاملًا (دقائق)</label><input type="number" min={1} value={f.duration} onChange={(e) => setF({ ...f, duration: e.target.value })} style={{ width: 120 }} placeholder="بلا حد" /></div>
-          <div><label>المحاولات</label><input type="number" min={1} value={f.attempts} onChange={(e) => setF({ ...f, attempts: e.target.value })} style={{ width: 80 }} /></div>
+          <div><label>المحاولات</label><input type="number" min={1} disabled={f.single} value={f.single ? "1" : f.attempts} onChange={(e) => setF({ ...f, attempts: e.target.value })} style={{ width: 80 }} /></div>
+          <label style={{ display: "flex", gap: 6, alignItems: "center", margin: 0 }}><input type="checkbox" style={{ width: "auto" }} checked={f.single} onChange={(e) => setF({ ...f, single: e.target.checked })} />محاولة واحدة فقط</label>
+          <div><label>نشر الدرجات</label><select value={f.release} onChange={(e) => setF({ ...f, release: e.target.value })}><option value="auto">تلقائي: تظهر فور التسليم</option><option value="manual">يدوي: بعد اعتمادك</option></select></div>
         </div>
         <p className="muted" style={{ margin: "6px 0" }}>مؤقت كل سؤال يُحدَّد عند كتابة السؤال في «إنشاء أسئلة»، ويمكن الجمع بينه وبين مدة الامتحان.</p>
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>

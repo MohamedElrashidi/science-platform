@@ -15,7 +15,7 @@ const LABEL = { mcq: "اختيار من متعدد", tf: "صح وخطأ", fill: 
 const EXT: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif" };
 
 export default function NewExam() {
-  const [f, setF] = useState({ title: "", subject: "العلوم", lesson: "", grade: "", duration: "", attempts: "1", show_answers: true, show_score: true, shuffle_questions: false, shuffle_options: true, scope: "" });
+  const [f, setF] = useState({ title: "", subject: "العلوم", lesson: "", grade: "", duration: "", attempts: "1", show_answers: true, show_score: true, shuffle_questions: false, shuffle_options: true, scope: "", single: false, release: "auto" });
   const [qs, setQs] = useState<Q[]>([blank()]);
   const [classes, setClasses] = useState<Cls[]>([]);
   const [msg, setMsg] = useState("");
@@ -45,7 +45,7 @@ export default function NewExam() {
   function toJson() {
     return {
       title: f.title.trim(), subject: f.subject.trim() || null, lesson: f.lesson.trim() || null, grade_level: f.grade.trim() || null,
-      duration_minutes: f.duration ? Number(f.duration) : null, max_attempts: Number(f.attempts) || 1,
+      duration_minutes: f.duration ? Number(f.duration) : null, max_attempts: f.single ? 1 : Number(f.attempts) || 1, release_mode: f.release,
       show_answers: f.show_answers, show_score: f.show_score, shuffle_questions: f.shuffle_questions, shuffle_options: f.shuffle_options,
       questions: qs.map((q) => {
         const base: any = {
@@ -92,7 +92,9 @@ export default function NewExam() {
         <div className="row" style={{ marginTop: 8 }}>
           <div><label>المرحلة / الصف</label><input value={f.grade} onChange={(e) => setF({ ...f, grade: e.target.value })} placeholder="5" style={{ width: 90 }} /></div>
           <div><label>المدة بالدقائق (فارغ = بلا حد)</label><input type="number" min={1} value={f.duration} onChange={(e) => setF({ ...f, duration: e.target.value })} style={{ width: 110 }} /></div>
-          <div><label>عدد المحاولات</label><input type="number" min={1} value={f.attempts} onChange={(e) => setF({ ...f, attempts: e.target.value })} style={{ width: 90 }} /></div>
+          <div><label>عدد المحاولات</label><input type="number" min={1} disabled={f.single} value={f.single ? "1" : f.attempts} onChange={(e) => setF({ ...f, attempts: e.target.value })} style={{ width: 90 }} /></div>
+          <label style={{ display: "flex", gap: 6, alignItems: "center", margin: 0 }}><input type="checkbox" style={{ width: "auto" }} checked={f.single} onChange={(e) => setF({ ...f, single: e.target.checked })} />محاولة واحدة فقط</label>
+          <div><label>نشر الدرجات</label><select value={f.release} onChange={(e) => setF({ ...f, release: e.target.value })}><option value="auto">تلقائي: تظهر فور التسليم</option><option value="manual">يدوي: بعد اعتمادك</option></select></div>
           <div><label>نطاق كل الأسئلة</label>
             {scopeSel(f.scope, (v) => { setF({ ...f, scope: v }); setQs((a) => a.map((q) => ({ ...q, scope: v }))); })}</div>
         </div>

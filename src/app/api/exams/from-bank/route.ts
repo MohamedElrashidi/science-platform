@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     owner_id: g.me.id, title, kind: "exam", subject_id: byId.get(ids[0])?.subject_id ?? null, grade_level: String(b.grade_level || "").trim() || null,
     description: null, duration_minutes: dm, max_attempts: ma,
     shuffle_questions: flag(b.shuffle_questions, false), shuffle_options: flag(b.shuffle_options, true),
-    show_answers: flag(b.show_answers, true), show_score: flag(b.show_score, true), practice_mode: false, status: publish ? "published" : "draft",
+    release_mode: b.release_mode === "manual" ? "manual" : "auto", show_answers: flag(b.show_answers, true), show_score: flag(b.show_score, true), practice_mode: false, status: publish ? "published" : "draft",
   }).select("id").single();
   if (error || !exam) return NextResponse.json({ error: "تعذر إنشاء الامتحان" }, { status: 500 });
 

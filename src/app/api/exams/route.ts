@@ -7,7 +7,7 @@ export async function GET() {
   if ("err" in g) return g.err;
   const supabase = await createClient();   // RLS: امتحانات المعلم فقط (والمدير الكل)
   const { data: exams } = await supabase.from("exams")
-    .select("id, title, kind, grade_level, status, duration_minutes, max_attempts, created_at")
+    .select("*")
     .order("created_at", { ascending: false });
   const list = exams || [];
   const ids = list.map((e) => e.id);

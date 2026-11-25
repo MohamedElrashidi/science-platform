@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireRole } from "@/lib/guard";
-import { db, assignedExam, expireIfNeeded, payload, windowOf } from "@/lib/attempts";
+import { db, overrideOf, assignedExam, expireIfNeeded, payload, windowOf } from "@/lib/attempts";
 
 export async function POST(_: Request, { params }: { params: Promise<{ id: string }> }) {
   const g = await requireRole("student");
@@ -9,6 +9,9 @@ export async function POST(_: Request, { params }: { params: Promise<{ id: strin
   const e = await assignedExam(g.me, eid);
   if (!e) return NextResponse.json({ error: "هذا الاختبار غير متاح لك" }, { status: 404 });
   const d = db();
+  const ov = await overrideOf(eid, g.me.id);
+  if (ov.lock === "final") return NextResponse.json({ error: "أنهى المعلم هذا الاختبار لك" }, { status: 403 });
+  if (ov.lock === "temp") return NextResponse.json({ error: "أوقف المعلم هذا الاختبار مؤقتًا. انتظر حتى يفتحه لك" }, { status: 423 });
 
   // محاولة جارية: نكملها
   const { data: cur } = await d.from("attempts").select("*").eq("exam_id", eid).eq("student_id", g.me.id).eq("status", "in_progress").maybeSingle();
@@ -19,7 +22,7 @@ export async function POST(_: Request, { params }: { params: Promise<{ id: strin
   if (w === "closed") return NextResponse.json({ error: "انتهى وقت الاختبار" }, { status: 403 });
   const { data: prev } = await d.from("attempts").select("attempt_no").eq("exam_id", eid).eq("student_id", g.me.id);
   const used = prev?.length ?? 0, maxNo = Math.max(0, ...(prev || []).map((p) => p.attempt_no));
-  if (used >= e.max_attempts) return NextResponse.json({ error: "استنفدت عدد المحاولات المسموحة" }, { status: 403 });
+  if (used >= e.max_attempts + ov.extra) return NextResponse.json({ error: "استنفدت عدد المحاولات المسموحة" }, { status: 403 });
 
   const { data: qs } = await d.from("exam_questions").select("question_id, marks").eq("exam_id", eid);
   if (!qs || !qs.length) return NextResponse.json({ error: "الاختبار لا يحتوي أسئلة" }, { status: 400 });

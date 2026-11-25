@@ -53,6 +53,7 @@ export async function POST(req: Request) {
       description: ex.description, duration_minutes: ex.duration_minutes, max_attempts: ex.max_attempts,
       shuffle_questions: ex.shuffle_questions, shuffle_options: ex.shuffle_options,
       show_answers: ex.show_answers, show_score: ex.show_score, practice_mode: ex.practice_mode, status: "draft",
+      ...(raw?.release_mode === "manual" ? { release_mode: "manual" } : {}),
     }).select("id").single();
     if (eErr || !exam) { results.push({ title: ex.title, ok: false, errors: ["تعذر إنشاء الامتحان"] }); continue; }
 

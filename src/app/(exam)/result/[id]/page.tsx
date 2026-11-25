@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { currentProfile } from "@/lib/auth";
 import { db, ownAttempt, signMedia } from "@/lib/attempts";
 import { describeAnswer, describeKey } from "@/lib/grading";
+import { isReleased } from "@/lib/release";
 
 export default async function Result({ params }: { params: Promise<{ id: string }> }) {
   const me = await currentProfile();
@@ -13,6 +14,11 @@ export default async function Result({ params }: { params: Promise<{ id: string 
   const { data: e } = await db().from("exams").select("*").eq("id", a.exam_id).single();
   if (a.status === "in_progress") redirect(`/take/${a.exam_id}`);
 
+  if (!isReleased(e, a)) return (
+    <div className="ex" style={{ paddingBottom: 40 }}><div className="card" style={{ marginTop: 24, textAlign: "center" }}>
+      <h1>{e.title}</h1><p style={{ fontSize: "1.1rem" }}>تم تسليم إجاباتك بنجاح ✅</p>
+      <p className="muted">ستظهر درجتك وملاحظاتك بعد أن يعتمد المعلم النتائج.</p>
+      <Link className="btn" href="/dashboard" style={{ textDecoration: "none", display: "inline-grid", placeItems: "center" }}>الرئيسية</Link></div></div>);
   const pending = a.status === "submitted";
   const showScore = e.show_score && !pending;
   const pct = Math.round(Number(a.percent || 0));
@@ -28,6 +34,16 @@ export default async function Result({ params }: { params: Promise<{ id: string 
       ...r, img: await signMedia(r.questions.media_url),
       mine: describeAnswer(r.questions.qtype, r.questions.data, r.answer), key: describeKey(r.questions.qtype, r.questions.data),
     })));
+  }
+  // تغذية راجعة: الأسئلة التي أخطأ فيها (تظهر دائمًا بعد اعتماد الدرجة)
+  let wrong: any[] = [];
+  if (!pending) {
+    const { data: wa } = await db().from("attempt_answers")
+      .select("question_id, marks_awarded, max_marks, is_correct, answer, questions(qtype, prompt, data, explanation, lessons(title))").eq("attempt_id", a.id);
+    wrong = (wa || []).filter((r: any) => r.marks_awarded !== null && Number(r.marks_awarded) < Number(r.max_marks)).map((r: any) => ({
+      id: r.question_id, prompt: r.questions?.prompt, lesson: r.questions?.lessons?.title ?? null, explanation: r.questions?.explanation ?? null,
+      empty: r.answer === null || r.answer === "" , key: e.show_answers ? describeKey(r.questions.qtype, r.questions.data) : null,
+    }));
   }
   const used = (await db().from("attempts").select("id", { count: "exact", head: true }).eq("exam_id", e.id).eq("student_id", me.id)).count ?? 0;
 
@@ -46,6 +62,20 @@ export default async function Result({ params }: { params: Promise<{ id: string 
           {used < e.max_attempts && <Link className="btn" href={`/take/${e.id}`} style={{ textDecoration: "none", display: "inline-grid", placeItems: "center" }}>محاولة جديدة</Link>}
         </div>
       </div>
+
+      {wrong.length > 0 && (
+        <div className="card" style={{ marginTop: 18 }}>
+          <h2>ملاحظات على الأسئلة التي تحتاج مراجعة ({wrong.length})</h2>
+          {Array.from(new Set(wrong.map((w) => w.lesson).filter(Boolean))).length > 0 &&
+            <p className="muted">راجع هذه الدروس: <b>{Array.from(new Set(wrong.map((w) => w.lesson).filter(Boolean))).join("، ")}</b></p>}
+          {wrong.map((w, k) => (
+            <div key={w.id} style={{ borderTop: "1px solid var(--line)", padding: "10px 0" }}>
+              <b style={{ whiteSpace: "pre-line" }}>{k + 1}. {w.prompt}</b>
+              <div className="muted">{w.empty ? "لم تُجب عن هذا السؤال" : "إجابتك لم تكن صحيحة"}{w.lesson ? ` — الدرس: ${w.lesson}` : ""}</div>
+              {w.key && <div>الإجابة الصحيحة: <b>{w.key}</b></div>}
+              {w.explanation && <div className="muted">{w.explanation}</div>}
+            </div>))}
+        </div>)}
 
       {review.length > 0 && <h2 style={{ marginTop: 22 }}>مراجعة الإجابات</h2>}
       {review.map((r, k) => (

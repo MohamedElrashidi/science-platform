@@ -23,6 +23,12 @@ export async function assignedExam(me: Profile, examId: number) {
   return a && a.length ? e : null;
 }
 
+/** استثناءات المعلم لطالب في امتحان: محاولات إضافية وقفل. تتحمل غياب الجدول (قبل تشغيل SQL). */
+export async function overrideOf(examId: number, studentId: string): Promise<{ extra: number; lock: "none" | "temp" | "final" }> {
+  const { data } = await db().from("exam_overrides").select("extra_attempts, lock").eq("exam_id", examId).eq("student_id", studentId).maybeSingle();
+  return { extra: Number((data as any)?.extra_attempts || 0), lock: ((data as any)?.lock as any) || "none" };
+}
+
 export async function ownAttempt(me: Profile, aid: number) {
   const { data: a } = await db().from("attempts").select("*").eq("id", aid).eq("student_id", me.id).maybeSingle();
   return a ? expireIfNeeded(a) : null;

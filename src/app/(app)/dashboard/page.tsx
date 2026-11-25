@@ -5,6 +5,7 @@ import Icon from "@/components/Icon";
 import AtomArt from "@/components/AtomArt";
 import { getPrefs } from "@/lib/prefs";
 import { tr } from "@/lib/i18n";
+import { isReleased } from "@/lib/release";
 import ProgressChart from "@/components/ProgressChart";
 import ParentHome from "./ParentHome";
 import { WeeklyBars, ExamBars, Empty } from "@/components/Charts";
@@ -155,17 +156,19 @@ async function StudentHome({ name, id, lang }: { name: string; id: string; lang:
   const T = (x: string) => tr(lang, x);
   const sb = await createClient();   // الطالب يرى امتحاناته المنشورة المسندة ومحاولاته فقط (RLS)
   const [ex, at, rs] = await Promise.all([
-    sb.from("exams").select("id, title, duration_minutes, max_attempts, show_score, kind").eq("status", "published"),
-    sb.from("attempts").select("id, exam_id, status, percent, submitted_at").eq("student_id", id).order("started_at", { ascending: false }),
+    sb.from("exams").select("*").eq("status", "published"),
+    sb.from("attempts").select("*").eq("student_id", id).order("started_at", { ascending: false }),
     sb.from("resources").select("id, title, kind, source").eq("status", "published").order("id", { ascending: false }),
   ]);
   const res: any[] = rs.data || [];
   const exams: any[] = ex.data || [], attempts: any[] = at.data || [];
   const showScore = new Map(exams.map((e) => [e.id, e.show_score]));
+  const byExam = new Map(exams.map((e) => [e.id, e]));
+  const rel = (a: any) => isReleased(byExam.get(a.exam_id), a);
   const done = attempts.filter((a) => a.status !== "in_progress");
-  const scored = done.filter((a) => a.status === "graded" && a.percent !== null && showScore.get(a.exam_id) === true).map((a) => Number(a.percent));
+  const scored = done.filter((a) => a.status === "graded" && a.percent !== null && showScore.get(a.exam_id) === true && rel(a)).map((a) => Number(a.percent));
   const mean = avg(scored);
-  const progress = done.filter((a) => a.status === "graded" && a.percent !== null && showScore.get(a.exam_id) === true)
+  const progress = done.filter((a) => a.status === "graded" && a.percent !== null && showScore.get(a.exam_id) === true && rel(a))
     .sort((x, y) => new Date(x.submitted_at || 0).getTime() - new Date(y.submitted_at || 0).getTime()).slice(-10)
     .map((a) => ({ label: exams.find((e) => e.id === a.exam_id)?.title ?? "امتحان", value: Number(a.percent) }));
   const used = new Map<number, number>();
@@ -232,7 +235,7 @@ async function StudentHome({ name, id, lang }: { name: string; id: string; lang:
           <div className="feed">{done.slice(0, 5).map((a) => (
             <div className="it" key={a.id}><div className="dot l"><Icon name="check" size={18} /></div>
               <Link href={`/result/${a.id}`} className="tx" style={{ textDecoration: "none", color: "inherit" }}>{exams.find((e) => e.id === a.exam_id)?.title ?? "امتحان"}<small>{a.submitted_at ? fmt(a.submitted_at) : ""}</small></Link>
-              {a.status === "graded" && a.percent !== null && showScore.get(a.exam_id) === true
+              {a.status === "graded" && a.percent !== null && showScore.get(a.exam_id) === true && rel(a)
                 ? <span className="badge g">{Math.round(Number(a.percent))}%</span> : <span className="badge a">قيد التصحيح</span>}</div>
           ))}</div>)}
       </section>

@@ -68,6 +68,18 @@ export async function POST(req: Request, ctx: Ctx) {
     if (rows.length) await supabase.from("exam_assignments").insert(rows);
     return NextResponse.json({ ok: true });
   }
+  if (b.action === "set_release") {
+    if (!["auto", "manual"].includes(b.mode)) return NextResponse.json({ error: "قيمة غير صحيحة" }, { status: 400 });
+    const { error } = await supabase.from("exams").update({ release_mode: b.mode }).eq("id", id);
+    return error ? NextResponse.json({ error: "تعذر الحفظ. هل شغّلت ملف 0007 في Supabase؟" }, { status: 500 }) : NextResponse.json({ ok: true });
+  }
+  if (b.action === "release" || b.action === "hide") {
+    // اعتماد (أو سحب) الدرجات: كل المحاولات المنتهية، أو محاولة واحدة attempt_id
+    let q = supabase.from("attempts").update({ released_at: b.action === "release" ? new Date().toISOString() : null }).eq("exam_id", id).neq("status", "in_progress");
+    if (b.attempt_id) q = q.eq("id", Number(b.attempt_id));
+    const { error } = await q;
+    return error ? NextResponse.json({ error: "تعذر الحفظ. هل شغّلت ملف 0007 في Supabase؟" }, { status: 500 }) : NextResponse.json({ ok: true });
+  }
   if (b.action === "unassign") {
     await supabase.from("exam_assignments").delete().eq("id", Number(b.assignment_id)).eq("exam_id", id);
     return NextResponse.json({ ok: true });

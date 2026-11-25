@@ -1,4 +1,5 @@
 import "server-only";
+import { isReleased } from "@/lib/release";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const avg = (xs: number[]) => (xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null);
@@ -19,10 +20,10 @@ export async function childReport(child: { id: string; full_name: string; class_
   const d = createAdminClient();
   const [cls, mine, mates] = await Promise.all([
     child.class_id ? d.from("classes").select("name").eq("id", child.class_id).maybeSingle() : Promise.resolve({ data: null }),
-    d.from("attempts").select("id, exam_id, percent, status, submitted_at, exams(title)").eq("student_id", child.id).in("status", ["graded", "submitted"]).order("submitted_at", { ascending: true }).limit(500),
+    d.from("attempts").select("*, exams(*)").eq("student_id", child.id).in("status", ["graded", "submitted"]).order("submitted_at", { ascending: true }).limit(500),
     child.class_id ? d.from("profiles").select("id").eq("role", "student").eq("active", true).eq("class_id", child.class_id).limit(500) : Promise.resolve({ data: [] as any[] }),
   ]);
-  const all: any[] = mine.data || [];
+  const all: any[] = (mine.data || []).filter((a: any) => isReleased(a.exams, a));
   const graded = all.filter((a) => a.status === "graded");
   const pending = all.length - graded.length;
   const my = graded.map((a) => Number(a.percent));
@@ -41,9 +42,9 @@ export async function childReport(child: { id: string; full_name: string; class_
   }
 
   // نقاط القوة والضعف حسب الدروس
-  const { data: ans } = await d.from("attempt_answers")
-    .select("marks_awarded, max_marks, attempts!inner(student_id, status), questions(lessons(title))")
-    .eq("attempts.student_id", child.id).eq("attempts.status", "graded").limit(5000);
+  const gradedIds = graded.map((a) => a.id);
+  const { data: ans } = gradedIds.length ? await d.from("attempt_answers")
+    .select("marks_awarded, max_marks, questions(lessons(title))").in("attempt_id", gradedIds).limit(5000) : { data: [] as any[] };
   const lm = new Map<string, { s: number; m: number }>();
   (ans || []).forEach((r: any) => {
     const t = r.questions?.lessons?.title; if (!t || r.marks_awarded === null) return;

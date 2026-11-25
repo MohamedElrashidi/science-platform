@@ -24,6 +24,8 @@ export default function Runner({ examId }: { examId: number }) {
   const [fb, setFb] = useState<Record<string, any>>({});
   const endAt = useRef<number | null>(null), dirty = useRef(false), aid = useRef(0), sending = useRef(false), done = useRef(false);
   const ansRef = useRef(ans); ansRef.current = ans;
+  const [lockMsg, setLockMsg] = useState("");
+  const iRef = useRef(0);
 
   useEffect(() => {
     api<Payload>(`/api/student/exams/${examId}/start`, "POST").then((d) => {
@@ -36,11 +38,11 @@ export default function Runner({ examId }: { examId: number }) {
   const flush = useCallback(async () => {
     if (sending.current || !dirty.current || done.current) return;
     sending.current = true; dirty.current = false; setSaved("saving");
-    try { await api(`/api/student/attempts/${aid.current}/answers`, "PUT", { answers: ansRef.current }); setSaved("saved"); }
-    catch (x: any) { dirty.current = true; setSaved("fail"); if (/انتهى/.test(x.message)) window.location.replace(`/result/${aid.current}`); }
+    try { await api(`/api/student/attempts/${aid.current}/answers`, "PUT", { answers: ansRef.current, current: iRef.current }); setSaved("saved"); setLockMsg(""); }
+    catch (x: any) { dirty.current = true; setSaved("fail"); if (/أوقف/.test(x.message)) setLockMsg(x.message); if (/انتهى/.test(x.message)) window.location.replace(`/result/${aid.current}`); }
     sending.current = false;
   }, []);
-  useEffect(() => { const t = setInterval(flush, 2500); return () => clearInterval(t); }, [flush]);
+  useEffect(() => { const t = setInterval(() => { dirty.current = true; flush(); }, 4000); return () => clearInterval(t); }, [flush]);
 
   const submit = useCallback(async () => {
     if (done.current) return; done.current = true; setBusy(true);
@@ -60,6 +62,7 @@ export default function Runner({ examId }: { examId: number }) {
   const set = (qid: number, v: any) => { setAns((o) => ({ ...o, [qid]: v })); dirty.current = true; setSaved(""); };
   const qs = p?.questions || [];
   const q = qs[i];
+  iRef.current = i;
   const answered = useMemo(() => qs.filter((x) => !isEmpty(ans[x.id])).length, [qs, ans]);
   // مؤقت السؤال: يبدأ عند فتح السؤال أول مرة، وعند انتهائه يُقفل وينتقل للتالي (على جهاز الطالب)
   const qStart = useRef<Record<string, number>>({});
@@ -95,6 +98,7 @@ export default function Runner({ examId }: { examId: number }) {
       </header>
       <div className="ex-bar" role="progressbar" aria-valuenow={pct}><i style={{ width: `${pct}%` }} /></div>
 
+      {lockMsg && <div className="modal-bg"><div className="modal"><h2>الاختبار متوقف مؤقتًا</h2><p>{lockMsg}</p><p className="muted">لا تغلق الصفحة. سيستمر الاختبار حين يفتحه المعلم.</p></div></div>}
       <main className="ex-main">
         <section className="qcard" key={q.id}>
           <div className="q-head"><span className="q-no">السؤال {i + 1} من {qs.length}</span><span className="badge">{q.marks} {q.marks === 1 ? "درجة" : "درجات"}</span>{qLeft !== null && <span className={"badge " + (qLeft <= 10 ? "a" : "g")}>⏱ {clock(qLeft)}</span>}</div>
