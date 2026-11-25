@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import { api } from "@/lib/client";
 
 type Row = { student_id: string; name: string; class: string; state: "none" | "running" | "done"; attempt_id: number | null; attempt_no: number; status: string | null;
-  answered: number | null; current: number | null; percent: number | null; released: boolean; lock: "none" | "temp" | "final"; extra: number; attempts_used: number };
+  answered: number | null; current: number | null; percent: number | null; released: boolean; leaves: number; lock: "none" | "temp" | "final"; extra: number; attempts_used: number };
 type Data = { exam: { id: number; title: string; max_attempts: number; release_mode: string; status: string }; total_questions: number; rows: Row[] };
 type Live = { status: string; current: number | null; questions: { no: number; prompt: string; state: "correct" | "wrong" | "manual" | "none"; mine: string; key: string }[] };
 
@@ -72,7 +72,7 @@ export default function Monitor() {
           <tbody>{d.rows.map((r) => (
             <tr key={r.student_id}>
               <td><a href="#" onClick={(e) => { e.preventDefault(); setSel(r); }}>{r.name}</a></td>
-              <td>{r.class}</td><td>{stBadge(r)}</td>
+              <td>{r.class}</td><td>{stBadge(r)}{r.leaves > 0 && <span className="badge a" title="عدد مرات مغادرة صفحة الاختبار"> ⚠️ خرج {r.leaves}</span>}</td>
               <td>{r.state === "running" ? `${r.answered}/${d.total_questions} — عند السؤال ${(r.current ?? 0) + 1}` : r.state === "done" ? `${d.total_questions}/${d.total_questions}` : "—"}
                 {r.attempts_used ? <span className="muted"> · محاولة {r.attempt_no}</span> : null}</td>
               <td>{r.percent !== null ? Math.round(Number(r.percent)) + "%" : "—"}{r.state === "done" && d.exam.release_mode === "manual" ? (r.released ? " ✓منشورة" : " (غير منشورة)") : ""}</td>

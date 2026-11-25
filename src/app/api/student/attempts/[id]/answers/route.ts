@@ -12,6 +12,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (ov.lock === "final") { await finalize(a.id); return NextResponse.json({ error: "انتهى الاختبار: أنهاه المعلم" }, { status: 409 }); }
   if (ov.lock === "temp") return NextResponse.json({ error: "أوقف المعلم الاختبار مؤقتًا" }, { status: 423 });
   const body = await req.json().catch(() => ({}));
+  if (Number.isInteger(body.leaves) && body.leaves > 0 && body.leaves < 1000) await db().from("attempts").update({ leave_count: body.leaves }).eq("id", a.id).lt("leave_count", body.leaves);
   if (Number.isInteger(body.current) && body.current >= 0 && body.current < 1000) await db().from("attempts").update({ current_q: body.current }).eq("id", a.id);
   if (!(await storeAnswers(a, body.answers, GRACE_SAVE))) { await finalize(a.id); return NextResponse.json({ error: "انتهى وقت الاختبار" }, { status: 409 }); }
   return NextResponse.json({ ok: true });

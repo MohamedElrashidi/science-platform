@@ -20,6 +20,7 @@ const STAFF: NavItem[] = [
   { href: "/videos", label: "الفيديوهات", icon: "play" },
   { href: "/bank", label: "بنك الأسئلة", icon: "bank" },
   { href: "/alerts", label: "تنبيهات أولياء الأمور", icon: "spark" },
+  { href: "/leaderboard", label: "منافسة الصف", icon: "award" },
   { href: "/awards", label: "المكافآت والشهادات", icon: "award" },
   { href: "/reports", label: "التقارير والتحليلات", icon: "chart" },
 ];

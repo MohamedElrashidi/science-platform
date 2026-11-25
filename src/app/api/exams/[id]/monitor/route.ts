@@ -41,7 +41,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
       attempt_id: a?.id ?? null, attempt_no: a?.attempt_no ?? 0, status: a?.status ?? null,
       answered: a ? (a.status === "in_progress" ? answered.get(a.id) || 0 : null) : 0,
       current: a?.current_q ?? null, percent: a && a.status !== "in_progress" ? a.percent : null, released: !!a?.released_at,
-      lock: o?.lock ?? "none", extra: o?.extra_attempts ?? 0, attempts_used: (atts || []).filter((x: any) => x.student_id === s.id).length,
+      leaves: a?.leave_count ?? 0, lock: o?.lock ?? "none", extra: o?.extra_attempts ?? 0, attempts_used: (atts || []).filter((x: any) => x.student_id === s.id).length,
     };
   }).sort((x, y) => x.name.localeCompare(y.name, "ar"));
   return NextResponse.json({ exam: { id: exam.id, title: exam.title, max_attempts: exam.max_attempts, release_mode: exam.release_mode ?? "auto", status: exam.status }, total_questions: nq ?? 0, rows });

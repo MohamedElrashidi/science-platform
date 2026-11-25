@@ -26,6 +26,15 @@ export default function Runner({ examId }: { examId: number }) {
   const ansRef = useRef(ans); ansRef.current = ans;
   const [lockMsg, setLockMsg] = useState("");
   const iRef = useRef(0);
+  const leaves = useRef(0);
+  const [warn, setWarn] = useState(0);
+  useEffect(() => {
+    const out = () => { if (done.current || !aid.current) return; leaves.current += 1; dirty.current = true; };
+    const back = () => { if (leaves.current > 0) setWarn(leaves.current); };
+    const vis = () => (document.hidden ? out() : back());
+    document.addEventListener("visibilitychange", vis);
+    return () => document.removeEventListener("visibilitychange", vis);
+  }, []);
 
   useEffect(() => {
     api<Payload>(`/api/student/exams/${examId}/start`, "POST").then((d) => {
@@ -38,7 +47,7 @@ export default function Runner({ examId }: { examId: number }) {
   const flush = useCallback(async () => {
     if (sending.current || !dirty.current || done.current) return;
     sending.current = true; dirty.current = false; setSaved("saving");
-    try { await api(`/api/student/attempts/${aid.current}/answers`, "PUT", { answers: ansRef.current, current: iRef.current }); setSaved("saved"); setLockMsg(""); }
+    try { await api(`/api/student/attempts/${aid.current}/answers`, "PUT", { answers: ansRef.current, current: iRef.current, leaves: leaves.current }); setSaved("saved"); setLockMsg(""); }
     catch (x: any) { dirty.current = true; setSaved("fail"); if (/أوقف/.test(x.message)) setLockMsg(x.message); if (/انتهى/.test(x.message)) window.location.replace(`/result/${aid.current}`); }
     sending.current = false;
   }, []);
@@ -98,6 +107,9 @@ export default function Runner({ examId }: { examId: number }) {
       </header>
       <div className="ex-bar" role="progressbar" aria-valuenow={pct}><i style={{ width: `${pct}%` }} /></div>
 
+      {warn > 0 && <div className="modal-bg"><div className="modal"><h2>⚠️ تنبيه: ممنوع الخروج أثناء الاختبار</h2>
+        <p>غادرتَ صفحة الاختبار {warn} {warn === 1 ? "مرة" : "مرات"}. كل خروج يُسجَّل ويصل إلى معلمك، وقد يُحتسب محاولة غش.</p>
+        <button onClick={() => setWarn(0)}>فهمت، متابعة الاختبار</button></div></div>}
       {lockMsg && <div className="modal-bg"><div className="modal"><h2>الاختبار متوقف مؤقتًا</h2><p>{lockMsg}</p><p className="muted">لا تغلق الصفحة. سيستمر الاختبار حين يفتحه المعلم.</p></div></div>}
       <main className="ex-main">
         <section className="qcard" key={q.id}>
