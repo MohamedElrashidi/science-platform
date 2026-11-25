@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/client";
 import { TYPE_LABELS } from "@/lib/qtypes";
+import AssignBox, { type Stu, type Target } from "@/components/AssignBox";
 
 type Ex = { id: number; title: string; kind: string; grade_level: string | null; status: string; total: number; pending: number };
 type Cls = { id: number; name: string };
@@ -25,12 +26,13 @@ export default function ExamsPage() {
   const [classes, setClasses] = useState<Cls[]>([]);
   const [open, setOpen] = useState<number | null>(null);
   const [detail, setDetail] = useState<any>(null);
-  const [cls, setCls] = useState("");
+  const [students, setStudents] = useState<Stu[]>([]);
+  const [tg, setTg] = useState<Target>({ classIds: [], studentIds: [] });
   const [msg, setMsg] = useState("");
 
   const load = () => api<Ex[]>("/api/exams").then(setList).catch((e) => setMsg(e.message));
   const loadDetail = (id: number) => api("/api/exams/" + id).then(setDetail).catch((e) => setMsg(e.message));
-  useEffect(() => { load(); api<Cls[]>("/api/classes").then(setClasses).catch(() => {}); }, []);
+  useEffect(() => { load(); api<Cls[]>("/api/classes").then(setClasses).catch(() => {}); api<Stu[]>("/api/students").then(setStudents).catch(() => {}); }, []);
 
   function toggle(id: number) {
     if (open === id) { setOpen(null); setDetail(null); return; }
@@ -50,7 +52,7 @@ export default function ExamsPage() {
   return (
     <div className="card">
       <h1>الامتحانات</h1>
-      <p className="muted"><a className="btn" href="/exams/new" style={{ textDecoration: "none", display: "inline-grid", placeItems: "center" }}>+ امتحان جديد</a> اكتب امتحانك هنا مباشرة، أو استورده من <a href="/import">صفحة الاستيراد</a>، ثم اعتمد أسئلته وانشره وأسنده لصف.</p>
+      <p className="muted"><a className="btn" href="/exams/new" style={{ textDecoration: "none", display: "inline-grid", placeItems: "center" }}>+ امتحان جديد</a> <a className="btn ghost" href="/exams/from-bank" style={{ textDecoration: "none", display: "inline-grid", placeItems: "center", background: "var(--card)", color: "var(--teal)", border: "1.5px solid var(--line)", boxShadow: "none" }}>امتحان من البنك</a> اكتب امتحانك هنا مباشرة، أو استورده من <a href="/import">صفحة الاستيراد</a>، ثم اعتمد أسئلته وانشره وأسنده لصف.</p>
       <p className="err">{msg}</p>
       {!list.length && <p className="muted">لا توجد امتحانات بعد.</p>}
       {list.map((e) => (
@@ -75,14 +77,13 @@ export default function ExamsPage() {
                 <button className="ghost" onClick={() => del(e.id)}>حذف</button>
               </div>
 
-              <b>الصفوف المسند إليها</b>
-              <div className="row" style={{ margin: "6px 0 10px" }}>
-                <select value={cls} onChange={(x) => setCls(x.target.value)} aria-label="الصف">
-                  <option value="">اختر صفاً</option>{classes.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-                <button disabled={!cls} onClick={() => act(e.id, { action: "assign", class_id: Number(cls) })}>إسناد</button>
+              <b>الإسناد (صف أو عدة صفوف أو طالب معين)</b>
+              <div style={{ margin: "6px 0 10px" }}>
+                <AssignBox classes={classes} students={students} value={tg} onChange={setTg} />
+                <button style={{ marginTop: 8 }} disabled={!tg.classIds.length && !tg.studentIds.length}
+                  onClick={async () => { await act(e.id, { action: "assign", class_ids: tg.classIds, student_ids: tg.studentIds }); setTg({ classIds: [], studentIds: [] }); }}>إسناد</button>
               </div>
-              {detail.assignments.length === 0 && <p className="muted">لم يُسند لأي صف بعد، فلن يظهر للطلاب.</p>}
+              {detail.assignments.length === 0 && <p className="muted">لم يُسند لأي صف أو طالب بعد، فلن يظهر للطلاب.</p>}
               {detail.assignments.map((a: any) => (
                 <span key={a.id} className="idcard" style={{ display: "inline-block", margin: "0 0 6px 6px", padding: "4px 10px" }}>
                   {a.name} <button className="ghost" style={{ minHeight: 28, padding: "0 8px" }} onClick={() => act(e.id, { action: "unassign", assignment_id: a.id })}>×</button>

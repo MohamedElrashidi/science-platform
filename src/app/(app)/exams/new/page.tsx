@@ -6,11 +6,11 @@ import { FONTS, styleCss } from "@/lib/qtypes";
 type Q = {
   type: "mcq" | "tf" | "fill" | "short" | "essay"; prompt: string; marks: string; lesson: string; explanation: string;
   options: string[]; correct: number; tf: boolean; blanks: string; accepted: string; model: string;
-  section: string; passage: string; image: string; preview: string; font: string; size: string; color: string; bold: boolean; scope: string;
+  section: string; passage: string; image: string; preview: string; font: string; size: string; color: string; bold: boolean; scope: string; timer: string;
 };
 type Cls = { id: number; name: string };
 const blank = (scope = ""): Q => ({ type: "mcq", prompt: "", marks: "1", lesson: "", explanation: "", options: ["", "", "", ""], correct: 0, tf: true, blanks: "", accepted: "", model: "",
-  section: "", passage: "", image: "", preview: "", font: "cairo", size: "21", color: "#142b45", bold: true, scope });
+  section: "", passage: "", image: "", preview: "", font: "cairo", size: "21", color: "#142b45", bold: true, scope, timer: "" });
 const LABEL = { mcq: "اختيار من متعدد", tf: "صح وخطأ", fill: "إكمال الفراغ", short: "إجابة قصيرة", essay: "مقالي (تصحيح يدوي)" };
 const EXT: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif" };
 
@@ -51,7 +51,7 @@ export default function NewExam() {
         const base: any = {
           type: q.type, prompt: q.prompt, marks: Number(q.marks) || 1, lesson: q.lesson.trim() || undefined, explanation: q.explanation.trim() || undefined,
           section: q.section.trim() || undefined, passage: q.passage.trim() || undefined, image: q.image || undefined,
-          style: { font: q.font, size: Number(q.size), color: q.color, bold: q.bold }, scope_class: q.scope ? Number(q.scope) : undefined,
+          style: { font: q.font, size: Number(q.size), color: q.color, bold: q.bold }, scope_class: q.scope ? Number(q.scope) : undefined, time_limit: q.timer ? Number(q.timer) : undefined,
         };
         if (q.type === "mcq") { const opts = q.options.map((o) => o.trim()); return { ...base, options: opts.filter(Boolean), correct: opts.filter(Boolean).indexOf(opts[q.correct]) }; }
         if (q.type === "tf") return { ...base, correct: q.tf };
@@ -123,6 +123,7 @@ export default function NewExam() {
               {Object.entries(LABEL).map(([k, l]) => <option key={k} value={k}>{l}</option>)}</select></div>
             <div><label>الدرجة</label><input type="number" min={0.5} step={0.5} value={q.marks} onChange={(e) => up(i, { marks: e.target.value })} style={{ width: 80 }} /></div>
             <div style={{ flex: "2 1 200px" }}><label>الدرس (لتحليل القوة والضعف)</label><input value={q.lesson} onChange={(e) => up(i, { lesson: e.target.value })} placeholder="مثال: الجهاز العصبي" /></div>
+            <div><label>مؤقت السؤال (ثوانٍ، فارغ = بلا مؤقت)</label><input type="number" min={5} max={3600} value={q.timer} onChange={(e) => up(i, { timer: e.target.value })} style={{ width: 110 }} /></div>
             <div><label>يُضاف السؤال</label>{scopeSel(q.scope, (v) => up(i, { scope: v }))}</div>
           </div>
 

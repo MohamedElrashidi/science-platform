@@ -35,7 +35,7 @@ export default function Bank() {
 
   return (
     <div className="card">
-      <div className="sec"><h1 style={{ margin: 0 }}>بنك الأسئلة</h1><a className="btn" href="/exams/new" style={{ textDecoration: "none" }}>+ إنشاء أسئلة</a><span className="badge">{rows?.length ?? "…"} سؤال</span></div>
+      <div className="sec"><h1 style={{ margin: 0 }}>بنك الأسئلة</h1><span><a className="btn" href="/exams/new" style={{ textDecoration: "none" }}>+ إنشاء أسئلة</a> <a className="btn" href="/exams/from-bank" style={{ textDecoration: "none" }}>امتحان من البنك</a></span><span className="badge">{rows?.length ?? "…"} سؤال</span></div>
       <div className="row">
         <div><label>بحث</label><input value={f.q} onChange={(e) => setF({ ...f, q: e.target.value })} placeholder="كلمة من نص السؤال" /></div>
         <div><label>المادة</label><select value={f.subject_id} onChange={(e) => setF({ ...f, subject_id: e.target.value })}><option value="">الكل</option>{subjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>

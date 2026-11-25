@@ -17,9 +17,10 @@ export async function GET(_: Request, ctx: Ctx) {
     const q = Array.isArray(r.questions) ? r.questions[0] : r.questions;
     return { ...q, marks: r.marks, position: r.position };
   });
-  const { data: asg } = await supabase.from("exam_assignments").select("id, class_id, classes(name)").eq("exam_id", id);
+  const { data: asg } = await supabase.from("exam_assignments").select("id, class_id, student_id, classes(name), profiles(full_name)").eq("exam_id", id);
   const assignments = (asg || []).map((a: any) => ({
-    id: a.id, class_id: a.class_id, name: (Array.isArray(a.classes) ? a.classes[0] : a.classes)?.name ?? "—",
+    id: a.id, class_id: a.class_id, student_id: a.student_id,
+    name: a.student_id ? "طالب: " + ((Array.isArray(a.profiles) ? a.profiles[0] : a.profiles)?.full_name ?? "—") : (Array.isArray(a.classes) ? a.classes[0] : a.classes)?.name ?? "—",
   }));
   return NextResponse.json({ exam, questions, assignments });
 }
@@ -54,11 +55,17 @@ export async function POST(req: Request, ctx: Ctx) {
     return NextResponse.json({ ok: true });
   }
   if (b.action === "assign") {
-    const classId = Number(b.class_id);
-    const { data: cls } = await supabase.from("classes").select("id").eq("id", classId).maybeSingle();   // RLS: صفوفه فقط
-    if (!cls) return NextResponse.json({ error: "الصف غير متاح لك" }, { status: 403 });
-    const { data: ex } = await supabase.from("exam_assignments").select("id").eq("exam_id", id).eq("class_id", classId).maybeSingle();
-    if (!ex) await supabase.from("exam_assignments").insert({ exam_id: id, class_id: classId });
+    const cids = Array.from(new Set([...(Array.isArray(b.class_ids) ? b.class_ids : []), ...(b.class_id !== undefined ? [b.class_id] : [])].map(Number).filter(Number.isInteger)));
+    const sids = Array.from(new Set((Array.isArray(b.student_ids) ? b.student_ids : []).map(String))) as string[];
+    if (!cids.length && !sids.length) return NextResponse.json({ error: "اختر صفًا أو طالبًا" }, { status: 400 });
+    const okC = cids.length ? (await supabase.from("classes").select("id").in("id", cids)).data || [] : [];   // RLS: صفوفه فقط
+    if (okC.length !== cids.length) return NextResponse.json({ error: "أحد الصفوف غير متاح لك" }, { status: 403 });
+    const okS = sids.length ? (await supabase.from("profiles").select("id").eq("role", "student").in("id", sids)).data || [] : [];
+    if (okS.length !== sids.length) return NextResponse.json({ error: "أحد الطلاب غير متاح لك" }, { status: 403 });
+    const { data: cur } = await supabase.from("exam_assignments").select("class_id, student_id").eq("exam_id", id);
+    const haveC = new Set((cur || []).map((c: any) => c.class_id)), haveS = new Set((cur || []).map((c: any) => c.student_id));
+    const rows = [...cids.filter((c) => !haveC.has(c)).map((c) => ({ exam_id: id, class_id: c })), ...sids.filter((x) => !haveS.has(x)).map((x) => ({ exam_id: id, student_id: x }))];
+    if (rows.length) await supabase.from("exam_assignments").insert(rows);
     return NextResponse.json({ ok: true });
   }
   if (b.action === "unassign") {

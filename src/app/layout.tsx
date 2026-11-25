@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Cairo } from "next/font/google";
+import { Cairo, Tajawal } from "next/font/google";
 import "./globals.css";
 import PwaRegister from "@/components/PwaRegister";
 import { getPrefs } from "@/lib/prefs";
 
 const cairo = Cairo({ subsets: ["arabic", "latin"], weight: ["400", "600", "700", "800"], display: "swap", variable: "--font-cairo" });
+const tajawal = Tajawal({ subsets: ["arabic", "latin"], weight: ["400", "500", "700", "800"], display: "swap", variable: "--font-tajawal" });
 
 export const metadata: Metadata = {
   title: { default: "ELRASHIDI - PLATFORM", template: "%s | ELRASHIDI - PLATFORM" },
@@ -24,7 +25,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const { lang, theme } = await getPrefs();
   return (
-    <html lang={lang} dir={lang === "en" ? "ltr" : "rtl"} data-theme={theme} className={cairo.variable}>
+    <html lang={lang} dir={lang === "en" ? "ltr" : "rtl"} data-theme={theme} className={`${cairo.variable} ${tajawal.variable}`}>
       <body>
         {children}
         <PwaRegister />

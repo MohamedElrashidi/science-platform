@@ -61,6 +61,18 @@ export default function Runner({ examId }: { examId: number }) {
   const qs = p?.questions || [];
   const q = qs[i];
   const answered = useMemo(() => qs.filter((x) => !isEmpty(ans[x.id])).length, [qs, ans]);
+  // مؤقت السؤال: يبدأ عند فتح السؤال أول مرة، وعند انتهائه يُقفل وينتقل للتالي (على جهاز الطالب)
+  const qStart = useRef<Record<string, number>>({});
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), 500); return () => clearInterval(t); }, []);
+  if (q?.time_limit && !qStart.current[q.id]) qStart.current[q.id] = Date.now();
+  const qLeft: number | null = q?.time_limit ? Math.max(0, q.time_limit - Math.floor((now - (qStart.current[q.id] || now)) / 1000)) : null;
+  const qLocked = qLeft === 0;
+  useEffect(() => {
+    if (!qLocked || i >= qs.length - 1) return;
+    const t = setTimeout(() => setI((x) => x + 1), 1200);
+    return () => clearTimeout(t);
+  }, [qLocked, i, qs.length]);
 
   async function check(q: Q) {
     try { const r = await api(`/api/student/attempts/${aid.current}/check`, "POST", { question_id: q.id, answer: ans[q.id] }); setFb((o) => ({ ...o, [q.id]: r })); }
@@ -85,13 +97,14 @@ export default function Runner({ examId }: { examId: number }) {
 
       <main className="ex-main">
         <section className="qcard" key={q.id}>
-          <div className="q-head"><span className="q-no">السؤال {i + 1} من {qs.length}</span><span className="badge">{q.marks} {q.marks === 1 ? "درجة" : "درجات"}</span></div>
+          <div className="q-head"><span className="q-no">السؤال {i + 1} من {qs.length}</span><span className="badge">{q.marks} {q.marks === 1 ? "درجة" : "درجات"}</span>{qLeft !== null && <span className={"badge " + (qLeft <= 10 ? "a" : "g")}>⏱ {clock(qLeft)}</span>}</div>
           {q.section && <h2 className="q-section">{q.section}</h2>}
           {q.passage && <div className="passage">{q.passage}</div>}
           {q.media_url && <img className="q-img" src={q.media_url} alt={q.media_alt || "صورة السؤال"} />}
           <p className="q-text" style={styleCss(q.style)}>{q.prompt}</p>
           {q.instructions && <p className="muted">{q.instructions}</p>}
-          <Answer q={q} v={ans[q.id]} set={(v) => set(q.id, v)} />
+          {qLocked && <p className="err">انتهى وقت هذا السؤال.</p>}
+          <div style={qLocked ? { pointerEvents: "none", opacity: 0.5 } : undefined}><Answer q={q} v={ans[q.id]} set={(v) => set(q.id, v)} /></div>
           {p.exam.practice_mode && (
             <div style={{ marginTop: 14 }}>
               <button type="button" className="ghost" onClick={() => check(q)}>تحقق من إجابتي</button>

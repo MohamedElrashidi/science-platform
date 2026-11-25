@@ -26,6 +26,8 @@ export type Converted = {
 // خطوط آمنة تعمل على أغلب الأجهزة (Cairo هو خط المنصة)
 export const FONTS: Record<string, { label: string; css: string }> = {
   cairo: { label: "Cairo (الافتراضي)", css: "var(--font-cairo), Cairo, Tahoma, sans-serif" },
+  tajawal: { label: "Tajawal (تجوال)", css: "var(--font-tajawal), Tajawal, Tahoma, sans-serif" },
+  dubai: { label: "Dubai (دبي) — يعمل على الأجهزة المثبّت عليها", css: "Dubai, 'Dubai Medium', Tahoma, sans-serif" },
   tahoma: { label: "Tahoma", css: "Tahoma, Arial, sans-serif" },
   arial: { label: "Arial", css: "Arial, Helvetica, sans-serif" },
   times: { label: "Times New Roman", css: "'Times New Roman', Times, serif" },
@@ -144,6 +146,7 @@ export function convertQuestion(q0: any, n: number): { ok: Converted } | { error
   if (m?.alt) data = { ...data, media_alt: str(m.alt) };
   const stl = cleanStyle(q.style); if (stl) data = { ...data, style: stl };
   const passage = str(q.passage); if (passage) data = { ...data, passage: passage.slice(0, 5000) };
+  const tl = Number(q.time_limit); if (Number.isInteger(tl) && tl >= 5 && tl <= 3600) data = { ...data, time_limit: tl };
   const sc = Number(q.scope_class); if (Number.isInteger(sc) && sc > 0) data = { ...data, scope_class: sc };
   const section = str(q.section); if (section) data = { ...data, section: section.slice(0, 200) };
   const diff = ["easy", "medium", "hard"].includes(str(q.difficulty)) ? str(q.difficulty) : "medium";

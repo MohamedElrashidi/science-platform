@@ -125,7 +125,7 @@ export function studentView(q: Q, seed: number, shuffleOptions: boolean) {
     view = { items };
   }
   return { id: q.id, qtype: q.qtype, prompt: q.prompt, instructions: q.instructions, media_kind: q.media_kind, media_url: q.media_url,
-    media_alt: d.media_alt || null, style: d.style || null, passage: d.passage || null, section: d.section || null, marks: q.marks, ...view };
+    media_alt: d.media_alt || null, style: d.style || null, time_limit: d.time_limit || null, passage: d.passage || null, section: d.section || null, marks: q.marks, ...view };
 }
 
 /** وصف الإجابة الصحيحة نصًا (للمراجعة بعد التسليم). */
